@@ -178,11 +178,16 @@ Robot2013_partialImage/$(MODE_DIR)/Objects/Robot2013/TargetCamera.o : C:/WindRiv
 	$(TRACE_FLAG)if [ ! -d "`dirname "$@"`" ]; then mkdir -p "`dirname "$@"`"; fi;echo "building $@"; $(TOOL_PATH)ccppc $(DEBUGFLAGS_C++-Compiler) $(CC_ARCH_SPEC) -ansi -Wall  -MD -MP -mlongcall $(ADDED_C++FLAGS) $(IDE_INCLUDES) $(ADDED_INCLUDES) -DCPU=$(CPU) -DTOOL_FAMILY=$(TOOL_FAMILY) -DTOOL=$(TOOL) -D_WRS_KERNEL   $(DEFINES) -o "$@" -c "$<"
 
 
+Robot2013_partialImage/$(MODE_DIR)/Objects/Robot2013/jankyTask.o : C:/WindRiver/workspace/Robot2013/jankyTask.cpp
+	$(TRACE_FLAG)if [ ! -d "`dirname "$@"`" ]; then mkdir -p "`dirname "$@"`"; fi;echo "building $@"; $(TOOL_PATH)ccppc $(DEBUGFLAGS_C++-Compiler) $(CC_ARCH_SPEC) -ansi -Wall  -MD -MP -mlongcall $(ADDED_C++FLAGS) $(IDE_INCLUDES) $(ADDED_INCLUDES) -DCPU=$(CPU) -DTOOL_FAMILY=$(TOOL_FAMILY) -DTOOL=$(TOOL) -D_WRS_KERNEL   $(DEFINES) -o "$@" -c "$<"
+
+
 OBJECTS_Robot2013_partialImage = Robot2013_partialImage/$(MODE_DIR)/Objects/Robot2013/Collector.o \
 	 Robot2013_partialImage/$(MODE_DIR)/Objects/Robot2013/ImageProcessing.o \
 	 Robot2013_partialImage/$(MODE_DIR)/Objects/Robot2013/MyRobot.o \
 	 Robot2013_partialImage/$(MODE_DIR)/Objects/Robot2013/Shooter.o \
-	 Robot2013_partialImage/$(MODE_DIR)/Objects/Robot2013/TargetCamera.o
+	 Robot2013_partialImage/$(MODE_DIR)/Objects/Robot2013/TargetCamera.o \
+	 Robot2013_partialImage/$(MODE_DIR)/Objects/Robot2013/jankyTask.o
 
 Robot2013_partialImage/$(MODE_DIR)/Robot2013_partialImage.o : $(OBJECTS_Robot2013_partialImage)
 	$(TRACE_FLAG)if [ ! -d "`dirname "$@"`" ]; then mkdir -p "`dirname "$@"`"; fi;echo "building $@"; $(TOOL_PATH)ccppc -r -nostdlib -Wl,-X  -o "$@" $(OBJECTS_Robot2013_partialImage) $(LIBPATH) $(LIBS) $(ADDED_LIBPATH) $(ADDED_LIBS)  && if [ "$(EXPAND_DBG)" = "1" ]; then plink "$@";fi
@@ -195,7 +200,7 @@ Robot2013_partialImage/$(MODE_DIR)/Robot2013_partialImage_clean :
 	$(TRACE_FLAG)if [ -d "Robot2013_partialImage" ]; then cd "Robot2013_partialImage"; rm -rf $(MODE_DIR); fi
 
 DEP_FILES := Robot2013_partialImage/$(MODE_DIR)/Objects/Robot2013/Collector.d Robot2013_partialImage/$(MODE_DIR)/Objects/Robot2013/ImageProcessing.d Robot2013_partialImage/$(MODE_DIR)/Objects/Robot2013/MyRobot.d \
-	 Robot2013_partialImage/$(MODE_DIR)/Objects/Robot2013/Shooter.d Robot2013_partialImage/$(MODE_DIR)/Objects/Robot2013/TargetCamera.d
+	 Robot2013_partialImage/$(MODE_DIR)/Objects/Robot2013/Shooter.d Robot2013_partialImage/$(MODE_DIR)/Objects/Robot2013/TargetCamera.d Robot2013_partialImage/$(MODE_DIR)/Objects/Robot2013/jankyTask.d
 -include $(DEP_FILES)
 
 
