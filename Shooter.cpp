@@ -2,8 +2,13 @@
 void WheelTriggerInterrupt (uint32_t interruptAssertedMask, void *param);
 
 DriverStationLCD *driverStationLCD;
-Shooter::Shooter (int motor_channel, DigitalInput *trigger):
-	wheel_motor (motor_channel)
+Shooter::Shooter (int motor_channel, 
+		DigitalInput *trigger,
+		int numanumamatic_extend_channel,
+		int numanumamatic_retract_channel):
+	wheel_motor (motor_channel),
+	numanumamaticExtend (numanumamatic_extend_channel),
+	numanumamaticRetract (numanumamatic_retract_channel)
 {
      //wheel_counter = (void*)0;
      wheel_trigger = trigger;
@@ -17,18 +22,28 @@ Shooter::Shooter (int motor_channel, DigitalInput *trigger):
      filter_constant=0.0;
     driverStationLCD = DriverStationLCD::GetInstance();
     last_timestamp = 0;
+    state = READY;
+    timeTraveling.Start();
 }
-Shooter::Shooter (int motor_channel, Counter *counter):
-	wheel_motor (motor_channel)
+Shooter::Shooter (int motor_channel, 
+		Counter *counter,
+		int numanumamatic_extend_channel,
+		int numanumamatic_retract_channel):
+	wheel_motor (motor_channel),
+	numanumamaticExtend (numanumamatic_extend_channel),
+	numanumamaticRetract (numanumamatic_retract_channel)
 {
 	 wheel_counter = counter;
 	 //wheel_trigger = (void*)0;
-	 max_power=1.0f;
+	 max_power=1.f;
 	 ramp_up_rate=0.2;
      counts_per_revolution=400;
 	 ramp_down_rate=1.0;
 	 filter_constant=0.0;
 	 last_timestamp = 0;
+	 timeTraveling.Reset();
+	 state = READY;
+	 timeTraveling.Start();
     driverStationLCD = DriverStationLCD::GetInstance();
 }
 bool Shooter::ControlSpeed (void)
@@ -64,7 +79,13 @@ void Shooter::SetRpm (int rpm)
 }
 bool Shooter::IsReady()
 {
-return false;	
+	//TODO initialize to false.
+	bool is_ready = true;
+	if(previous_rpm > (0.95 *target_rpm))
+	{
+		is_ready = true;
+	}
+	return is_ready;	
 }
 void Shooter::SetMaxPower (float power)
 {
@@ -117,6 +138,41 @@ void WheelTriggerInterrupt (uint32_t interruptAssertedMask, void *param)
 //    float *rpm = (float *)param;
 //    *rpm = 2;
 }
+bool Shooter::ShootFrisbee (bool fire)
+	
+{
+	bool retValue = false;
+	switch (state)
+	{
+		case READY:
+			if (fire && IsReady () && timeTraveling.Get()>=.5)
+			{
+				numanumamaticExtend.Set(true);
+				numanumamaticRetract.Set(false);
+				timeTraveling.Reset();
+				timeTraveling.Start();
+				state = FIRED;
+				retValue = true;
+			}
+			break;
+		case FIRED:
+			if (timeTraveling.Get()>=.5)
+			{
+				timeTraveling.Reset();
+				timeTraveling.Start();
+			
+				numanumamaticExtend.Set(false);
+				numanumamaticRetract.Set(true);
+				state = READY;
+			}
+			break;
+			
+	}
+	return retValue;
+}
+
+
+
 
 
 

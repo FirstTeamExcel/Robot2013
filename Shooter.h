@@ -5,11 +5,17 @@
 #define FPGA_TIME_TO_MINUTES_FACTOR (60*1000*1000)
 class Shooter
 {
+public:
+	typedef enum {FIRED, READY,} SHOOTER_STATE; 
 private:  //shooter attributes
+	SHOOTER_STATE state;
 	int target_rpm;
 	Counter *wheel_counter;
 	DigitalInput *wheel_trigger;
 	Talon wheel_motor;
+	Solenoid numanumamaticExtend;
+	Solenoid numanumamaticRetract;
+	Timer timeTraveling;
 	float max_power;
 	float ramp_up_rate;
 	int counts_per_revolution;
@@ -21,10 +27,14 @@ private:  //shooter attributes
 	//void WheelTriggerInterrupt (uint32_t interruptAssertedMask, void *param);
 	
 public: //shooter functions
-	Shooter (int motor_channel, DigitalInput *trigger);
-	Shooter (int motor_channel, Counter *counter);
+	Shooter (int motor_channel, 
+			DigitalInput *trigger, 
+			int numanumamatic_extend_channel, 
+			int numanumamatic_retract_channel);
+	Shooter (int motor_channel, Counter *counter, int numanumamatic_extend_channel, int numanumamatic_retract_channel);
 	bool ControlSpeed (void);
 	void SetPower (float power_level);
+	float GetPower (void){return wheel_motor.Get();}
 	void SetRpm (int rpm);
 	bool IsReady();
 	void SetMaxPower (float power);
@@ -33,6 +43,7 @@ public: //shooter functions
 	void SetRampDownRate (float rate);
 	void SetFilterConstant (float filter_value);
 	float GetPreviousRpm (void){return previous_rpm;}
+	bool ShootFrisbee (bool fire);
 };
 
 

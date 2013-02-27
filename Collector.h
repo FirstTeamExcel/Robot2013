@@ -14,10 +14,8 @@ private: //Keep out Connor!!!
     float collectSpeed;
     Talon frontCollector;
     Talon backCollector;
-    Solenoid lifterLeftExtend;
-    Solenoid lifterLeftRetract;
-    Solenoid lifterRightExtend;
-    Solenoid lifterRightRetract;
+    Solenoid lifterExtend;
+    Solenoid lifterRetract;
     Solenoid tilterExtend;
     Solenoid tilterRetract;
     Timer timeTraveling;
@@ -26,10 +24,8 @@ private: //Keep out Connor!!!
 public:
     Collector (int front_collector_channel,
             int back_collector_channel,
-            int lifter_left_extend_channel,
-            int lifter_left_retract_channel,
-            int lifter_right_extend_channel,
-            int lifter_right_retract_channel,
+            int lifter_extend_channel,
+            int lifter_retract_channel,
             int tilter_extend_channel,
             int tilter_retract_channel);
     float GetCollectSpeed(void){return collectSpeed;}

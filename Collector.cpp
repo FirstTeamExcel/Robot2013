@@ -3,39 +3,33 @@
 
 Collector::Collector (int front_collector_channel,
         int back_collector_channel,
-        int lifter_left_extend_channel,
-        int lifter_left_retract_channel,
-        int lifter_right_extend_channel,
-        int lifter_right_retract_channel,
+        int lifter_extend_channel,
+        int lifter_retract_channel,
         int tilter_extend_channel,
         int tilter_retract_channel):
             frontCollector (front_collector_channel),
             backCollector (back_collector_channel),
-            lifterLeftExtend (lifter_left_extend_channel),
-            lifterLeftRetract (lifter_left_retract_channel),
-            lifterRightExtend (lifter_right_extend_channel),
-            lifterRightRetract (lifter_right_retract_channel),
+            lifterExtend (lifter_extend_channel),
+            lifterRetract (lifter_retract_channel),
             tilterExtend (tilter_extend_channel),
             tilterRetract (tilter_retract_channel)
 {
-    position = STARTING_POSITION;
-    loadSpeed=0.2;
-    feedSpeed=0.5;
-    collectSpeed=0.35;
+    position = DOWN;
+    loadSpeed=0.5;
+    feedSpeed=0.9;
+    collectSpeed=0.5;
     timeTraveling.Stop();
-    frontCollector.Set(0);
-    backCollector.Set(0);
 }
 void Collector::Feed(void)
 {
     switch (position)
     {
         case UP:
-            frontCollector.Set(-feedSpeed);
+            frontCollector.Set(feedSpeed);
             backCollector.Set(feedSpeed);
             break;
         case DOWN:
-            frontCollector.Set(-feedSpeed);
+            frontCollector.Set(feedSpeed);
             backCollector.Set(feedSpeed);
             break;
         case TRAVELING_UP:
@@ -59,8 +53,6 @@ void Collector::Feed(void)
             backCollector.Set(feedSpeed);
             break;
         case LEAVING_STARTING_POSITION:
-            frontCollector.Set(0);
-            backCollector.Set(0);
             if (timeTraveling.Get()>=.5)
             {
                 position = UP;
@@ -74,19 +66,15 @@ void Collector::Load(void)
     switch (position)
        {
        case UP:
-           frontCollector.Set(loadSpeed);
-           backCollector.Set(-loadSpeed);
+           frontCollector.Set(-loadSpeed);
+           backCollector.Set(-0.75);
            break;
        case DOWN:
        case TRAVELING_DOWN:
            frontCollector.Set(0);
            backCollector.Set(0);
-           lifterLeftExtend.Set(true);
-           lifterRightExtend.Set(true);
-           lifterLeftRetract.Set(false);
-           lifterRightRetract.Set(false);
-           tilterExtend.Set(true);
-           tilterRetract.Set(false);
+           lifterExtend.Set(true);
+           lifterRetract.Set(false);
            position = TRAVELING_UP;
            timeTraveling.Reset ();
            timeTraveling.Start ();
@@ -94,6 +82,15 @@ void Collector::Load(void)
        case TRAVELING_UP:
            frontCollector.Set(0);
            backCollector.Set(0);
+           if (timeTraveling.Get() >= .15)
+           {
+        	   if (tilterExtend.Get() == false)
+        	   {
+        		   backCollector.Set(.5);
+        	   }
+               tilterExtend.Set(true);
+               tilterRetract.Set(false);
+           }
            if (timeTraveling.Get()>= .75)
            {
                position = UP;
@@ -104,8 +101,6 @@ void Collector::Load(void)
            backCollector.Set(0);
            break;
        case LEAVING_STARTING_POSITION:
-           frontCollector.Set(0);
-           backCollector.Set(0);
            if (timeTraveling.Get()>=.5)
            {
                position = UP;
@@ -122,10 +117,8 @@ void Collector::Collect(void)
        case TRAVELING_UP:
            frontCollector.Set(0);
            backCollector.Set(0);
-           lifterRightRetract.Set(true);
-           lifterLeftRetract.Set(true);               
-           lifterLeftExtend.Set(false);
-           lifterRightExtend.Set(false);
+           lifterRetract.Set(true);               
+           lifterExtend.Set(false);
            tilterExtend.Set(false);
            tilterRetract.Set(true);
            position = TRAVELING_DOWN;
@@ -134,7 +127,7 @@ void Collector::Collect(void)
            break;
        case DOWN:
            frontCollector.Set(collectSpeed);
-           backCollector.Set(collectSpeed);
+           backCollector.Set(-collectSpeed);
            break;
        case TRAVELING_DOWN:
            frontCollector.Set(0);
@@ -149,8 +142,6 @@ void Collector::Collect(void)
            backCollector.Set(0);
            break;
        case LEAVING_STARTING_POSITION:
-           frontCollector.Set(0);
-           backCollector.Set(0);
            if (timeTraveling.Get()>=.5)
            {
                position = UP;
@@ -172,6 +163,15 @@ void Collector::Idle(void)
        case DOWN:
            break;
        case TRAVELING_UP:
+           if (timeTraveling.Get() >= .15)
+           {
+        	   if (tilterExtend.Get() == false)
+        	   {
+        		   backCollector.Set(.5);
+        	   }
+               tilterExtend.Set(true);
+               tilterRetract.Set(false);
+           }
            if (timeTraveling.Get()>= .75)
            {
                position = UP;
@@ -186,7 +186,7 @@ void Collector::Idle(void)
        case STARTING_POSITION:
            break;
        case LEAVING_STARTING_POSITION:
-           if (timeTraveling.Get()>=.5)
+           if (timeTraveling.Get()>=.2)
            {
                position = UP;
            }
@@ -199,8 +199,6 @@ void Collector::EnterStartingPosition(void)
    position = STARTING_POSITION;
    timeTraveling.Reset();
    timeTraveling.Stop();
-   frontCollector.Set(0);
-   backCollector.Set(0);
 }
 
 void Collector::LeaveStartingPosition(void)
@@ -208,14 +206,10 @@ void Collector::LeaveStartingPosition(void)
     position = LEAVING_STARTING_POSITION;
     timeTraveling.Reset();
     timeTraveling.Start();
-    lifterLeftExtend.Set(true);
-    lifterRightExtend.Set(true);
-    lifterLeftRetract.Set(false);
-    lifterRightRetract.Set(false);
+    lifterExtend.Set(true);
+    lifterRetract.Set(false);
     tilterExtend.Set(true);
     tilterRetract.Set(false);
-    frontCollector.Set(0);
-    backCollector.Set(0);
 }
 
 //float Collector::GetCollectSpeed(void)

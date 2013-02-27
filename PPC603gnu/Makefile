@@ -31,8 +31,8 @@ else
 MODE_DIR := NonDebug
 endif
 OBJ_DIR := .
+PRJ_ROOT_DIR := C:/WindRiver/workspace/Robot2013
 WS_ROOT_DIR := C:/WindRiver/workspace
-PRJ_ROOT_DIR := $(WS_ROOT_DIR)/Robot2013
 
 
 
@@ -55,8 +55,6 @@ LIBS =
 IDE_INCLUDES = -I$(WIND_BASE)/target/h -I$(WIND_BASE)/target/h/WPILib -I$(WIND_BASE)/target/h/wrn/coreip 
 
 IDE_LIBRARIES = $(WIND_BASE)/target/lib/WPILib.a 
-
-IDE_DEFINES = 
 
 
 
@@ -103,7 +101,6 @@ Robot2013/$(MODE_DIR)/% : DEBUGFLAGS_Assembler = -O2 -fstrength-reduce -fno-buil
 endif
 Robot2013/$(MODE_DIR)/% : IDE_INCLUDES = -I$(WIND_BASE)/target/h -I$(WIND_BASE)/target/h/WPILib -I$(WIND_BASE)/target/h/wrn/coreip 
 Robot2013/$(MODE_DIR)/% : IDE_LIBRARIES = $(WIND_BASE)/target/lib/WPILib.a 
-Robot2013/$(MODE_DIR)/% : IDE_DEFINES = 
 Robot2013/$(MODE_DIR)/% : PROJECT_TYPE = DKM
 Robot2013/$(MODE_DIR)/% : DEFINES = 
 Robot2013/$(MODE_DIR)/% : EXPAND_DBG = 0
@@ -148,7 +145,6 @@ Robot2013_partialImage/$(MODE_DIR)/% : DEBUGFLAGS_Assembler = -O2 -fstrength-red
 endif
 Robot2013_partialImage/$(MODE_DIR)/% : IDE_INCLUDES = -I$(WIND_BASE)/target/h -I$(WIND_BASE)/target/h/WPILib -I$(WIND_BASE)/target/h/wrn/coreip 
 Robot2013_partialImage/$(MODE_DIR)/% : IDE_LIBRARIES = $(WIND_BASE)/target/lib/WPILib.a 
-Robot2013_partialImage/$(MODE_DIR)/% : IDE_DEFINES = 
 Robot2013_partialImage/$(MODE_DIR)/% : PROJECT_TYPE = DKM
 Robot2013_partialImage/$(MODE_DIR)/% : DEFINES = 
 Robot2013_partialImage/$(MODE_DIR)/% : EXPAND_DBG = 0
@@ -162,23 +158,23 @@ Robot2013_partialImage/$(MODE_DIR)/% : LIBPATH =
 Robot2013_partialImage/$(MODE_DIR)/% : LIBS = 
 Robot2013_partialImage/$(MODE_DIR)/% : OBJ_DIR := Robot2013_partialImage/$(MODE_DIR)
 
-Robot2013_partialImage/$(MODE_DIR)/Objects/Robot2013/Collector.o : $(PRJ_ROOT_DIR)/Collector.cpp $(FORCE_FILE_BUILD)
+Robot2013_partialImage/$(MODE_DIR)/Objects/Robot2013/Collector.o : C:/WindRiver/workspace/Robot2013/Collector.cpp
 	$(TRACE_FLAG)if [ ! -d "`dirname "$@"`" ]; then mkdir -p "`dirname "$@"`"; fi;echo "building $@"; $(TOOL_PATH)ccppc $(DEBUGFLAGS_C++-Compiler) $(CC_ARCH_SPEC) -ansi -Wall  -MD -MP -mlongcall $(ADDED_C++FLAGS) $(IDE_INCLUDES) $(ADDED_INCLUDES) -DCPU=$(CPU) -DTOOL_FAMILY=$(TOOL_FAMILY) -DTOOL=$(TOOL) -D_WRS_KERNEL   $(DEFINES) -o "$@" -c "$<"
 
 
-Robot2013_partialImage/$(MODE_DIR)/Objects/Robot2013/ImageProcessing.o : $(PRJ_ROOT_DIR)/ImageProcessing.cpp $(FORCE_FILE_BUILD)
+Robot2013_partialImage/$(MODE_DIR)/Objects/Robot2013/ImageProcessing.o : C:/WindRiver/workspace/Robot2013/ImageProcessing.cpp
 	$(TRACE_FLAG)if [ ! -d "`dirname "$@"`" ]; then mkdir -p "`dirname "$@"`"; fi;echo "building $@"; $(TOOL_PATH)ccppc $(DEBUGFLAGS_C++-Compiler) $(CC_ARCH_SPEC) -ansi -Wall  -MD -MP -mlongcall $(ADDED_C++FLAGS) $(IDE_INCLUDES) $(ADDED_INCLUDES) -DCPU=$(CPU) -DTOOL_FAMILY=$(TOOL_FAMILY) -DTOOL=$(TOOL) -D_WRS_KERNEL   $(DEFINES) -o "$@" -c "$<"
 
 
-Robot2013_partialImage/$(MODE_DIR)/Objects/Robot2013/MyRobot.o : $(PRJ_ROOT_DIR)/MyRobot.cpp $(FORCE_FILE_BUILD)
+Robot2013_partialImage/$(MODE_DIR)/Objects/Robot2013/MyRobot.o : C:/WindRiver/workspace/Robot2013/MyRobot.cpp
 	$(TRACE_FLAG)if [ ! -d "`dirname "$@"`" ]; then mkdir -p "`dirname "$@"`"; fi;echo "building $@"; $(TOOL_PATH)ccppc $(DEBUGFLAGS_C++-Compiler) $(CC_ARCH_SPEC) -ansi -Wall  -MD -MP -mlongcall $(ADDED_C++FLAGS) $(IDE_INCLUDES) $(ADDED_INCLUDES) -DCPU=$(CPU) -DTOOL_FAMILY=$(TOOL_FAMILY) -DTOOL=$(TOOL) -D_WRS_KERNEL   $(DEFINES) -o "$@" -c "$<"
 
 
-Robot2013_partialImage/$(MODE_DIR)/Objects/Robot2013/Shooter.o : $(PRJ_ROOT_DIR)/Shooter.cpp $(FORCE_FILE_BUILD)
+Robot2013_partialImage/$(MODE_DIR)/Objects/Robot2013/Shooter.o : C:/WindRiver/workspace/Robot2013/Shooter.cpp
 	$(TRACE_FLAG)if [ ! -d "`dirname "$@"`" ]; then mkdir -p "`dirname "$@"`"; fi;echo "building $@"; $(TOOL_PATH)ccppc $(DEBUGFLAGS_C++-Compiler) $(CC_ARCH_SPEC) -ansi -Wall  -MD -MP -mlongcall $(ADDED_C++FLAGS) $(IDE_INCLUDES) $(ADDED_INCLUDES) -DCPU=$(CPU) -DTOOL_FAMILY=$(TOOL_FAMILY) -DTOOL=$(TOOL) -D_WRS_KERNEL   $(DEFINES) -o "$@" -c "$<"
 
 
-Robot2013_partialImage/$(MODE_DIR)/Objects/Robot2013/TargetCamera.o : $(PRJ_ROOT_DIR)/TargetCamera.cpp $(FORCE_FILE_BUILD)
+Robot2013_partialImage/$(MODE_DIR)/Objects/Robot2013/TargetCamera.o : C:/WindRiver/workspace/Robot2013/TargetCamera.cpp
 	$(TRACE_FLAG)if [ ! -d "`dirname "$@"`" ]; then mkdir -p "`dirname "$@"`"; fi;echo "building $@"; $(TOOL_PATH)ccppc $(DEBUGFLAGS_C++-Compiler) $(CC_ARCH_SPEC) -ansi -Wall  -MD -MP -mlongcall $(ADDED_C++FLAGS) $(IDE_INCLUDES) $(ADDED_INCLUDES) -DCPU=$(CPU) -DTOOL_FAMILY=$(TOOL_FAMILY) -DTOOL=$(TOOL) -D_WRS_KERNEL   $(DEFINES) -o "$@" -c "$<"
 
 
@@ -197,8 +193,6 @@ _clean :: Robot2013_partialImage/$(MODE_DIR)/Robot2013_partialImage_clean
 
 Robot2013_partialImage/$(MODE_DIR)/Robot2013_partialImage_clean : 
 	$(TRACE_FLAG)if [ -d "Robot2013_partialImage" ]; then cd "Robot2013_partialImage"; rm -rf $(MODE_DIR); fi
-
-force : 
 
 DEP_FILES := Robot2013_partialImage/$(MODE_DIR)/Objects/Robot2013/Collector.d Robot2013_partialImage/$(MODE_DIR)/Objects/Robot2013/ImageProcessing.d Robot2013_partialImage/$(MODE_DIR)/Objects/Robot2013/MyRobot.d \
 	 Robot2013_partialImage/$(MODE_DIR)/Objects/Robot2013/Shooter.d Robot2013_partialImage/$(MODE_DIR)/Objects/Robot2013/TargetCamera.d
