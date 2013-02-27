@@ -100,22 +100,26 @@ void Shooter::Run(void)
 	shooterSemaphore.take();
 	//If a revolution period is longer than the target, drive the motor
 	unsigned long count = wheel_counter->Get();
+	float motor_command = 0.0;
+	
 	
 	if (target_usec_per_revolution == 0)
 	{
 		upToSpeed = false;
-		wheel_motor.Set(0);
 	}
 	else if (target_usec_per_revolution < count)
 	{
-		if ((wheel_motor.Get () + ramp_up_rate) < max_power)
-		{
-			wheel_motor.Set (wheel_motor.Get() + ramp_up_rate);
-		}
-		else 
-		{
-			wheel_motor.Set (max_power);
-		}
+//		if ((last_motor_command + ramp_up_rate) < max_power)
+//		{
+//			wheel_motor.Set (wheel_motor.Get() + ramp_up_rate);
+//			motor_command = last_motor_command + ramp_up_rate;
+//		}
+//		else 
+//		{
+//			wheel_motor.Set (max_power);
+//			motor_command = max_power;
+//		}
+		motor_command = max_power;
 		//if target * 1.125 < period then we've slowed down enough to not be up to speed
 		if (target_usec_per_revolution + (target_usec_per_revolution >> 3) < count)
 		{
@@ -125,8 +129,13 @@ void Shooter::Run(void)
 	else
 	{
 		upToSpeed = true;
-		wheel_motor.Set (0);
-	}		
+	}
+	
+	if (last_motor_command != motor_command)
+		wheel_motor.Set(motor_command);
+	
+	last_motor_command = motor_command;
+	
 	shooterSemaphore.give();
 }
 

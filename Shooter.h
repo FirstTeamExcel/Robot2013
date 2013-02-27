@@ -27,6 +27,7 @@ private:  //shooter attributes
 	ReentrantSemaphore shooterSemaphore;
 	bool speedControl;
 	bool upToSpeed;
+	float last_motor_command;//for the shooter task
 	
 public: //shooter functions
 	Shooter (int motor_channel, Counter *counter, int numanumamatic_extend_channel, int numanumamatic_retract_channel);
