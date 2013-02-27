@@ -180,7 +180,6 @@ public:
 		driverStationLCD = DriverStationLCD::GetInstance();
 		myRobot.SetExpiration(0.1);
 		
-		frisbeeShooter.SetCountsPerRevolution(9);
 		autonReset = true;
 	}
 
@@ -228,99 +227,7 @@ public:
 		leftBrake.Set(false);
 		rightBrake.Set(false);
 	}
-	
-	void DisabledPeriodic(void)
-	{
-		static Timer button_combo_timer;
-		
-		if (rightStick.GetRawButton(2) == true,
-			leftStick.GetRawButton(2) == true)
-		{
-			button_combo_timer.Start();
-		}
-		else
-		{
-			button_combo_timer.Reset();
-			button_combo_timer.Stop();
-		}
-		
-		if (button_combo_timer.Get() > 2.00)
-		{
-			button_combo_timer.Reset();
-			switch (autonomousMode)
-			{
-			default:
-			case AUTONOMOUS_MODE_SEVEN_FRISBEE_FORWARD:
-				autonomousMode = AUTONOMOUS_MODE_SEVEN_FRISBEE_BACK;
-				break;
-			case AUTONOMOUS_MODE_SEVEN_FRISBEE_BACK:
-				autonomousMode = AUTONOMOUS_MODE_FIVE_FRISBEE_FORWARD;
-				break;
-			case AUTONOMOUS_MODE_FIVE_FRISBEE_FORWARD:
-				autonomousMode = AUTONOMOUS_MODE_THREE_FRISBEE;
-				break;
-			case AUTONOMOUS_MODE_THREE_FRISBEE:
-				autonomousMode = AUTONOMOUS_MODE_SEVEN_FRISBEE_FORWARD;
-				break;
-				
-//			case AUTONOMOUS_MODE_FIVE_FRISBEE_BACK:
-//				autonomousMode = AUTONOMOUS_MODE_FIVE_FRISBEE_FORWARD;
-//				break;
-//			case AUTONOMOUS_MODE_THREE_FRISBEE:
-//				autonomousMode = AUTONOMOUS_MODE_TWO_FRISBEE;
-//				break;
-//			case AUTONOMOUS_MODE_TWO_FRISBEE:
-//				autonomousMode = AUTONOMOUS_MODE_FOUR_FRISBEE;
-//				break;
-//			case AUTONOMOUS_MODE_FOUR_FRISBEE:
-//				autonomousMode = AUTONOMOUS_MODE_SIT_AND_SHOOT;
-//				break;
-//			case AUTONOMOUS_MODE_SIT_AND_SHOOT:
-//				autonomousMode = AUTONOMOUS_MODE_SEVEN_FRISBEE_FORWARD;
-//				break;
-//			
-//			case AUTONOMOUS_MODE_FEED_FRISBEE:
-//				autonomousMode = AUTONOMOUS_MODE_FIVE_FRISBEE_BACK;
-//				break;
-			}
-		}	
 
-		switch (autonomousMode)
-		{
-		default:
-		case AUTONOMOUS_MODE_FIVE_FRISBEE_BACK:
-				driverStationLCD->PrintfLine((DriverStationLCD::Line) 1, "Shoot 5, pickup behind");
-				break;
-		case AUTONOMOUS_MODE_FIVE_FRISBEE_FORWARD:
-				driverStationLCD->PrintfLine((DriverStationLCD::Line) 1, "Shoot 5, pickup forward");
-				break;
-		case AUTONOMOUS_MODE_THREE_FRISBEE:
-				driverStationLCD->PrintfLine((DriverStationLCD::Line) 1, "Shoot 3 frisbees");
-				break;
-		case AUTONOMOUS_MODE_TWO_FRISBEE:
-				driverStationLCD->PrintfLine((DriverStationLCD::Line) 1, "Shoot 2 front");
-				break;
-		case AUTONOMOUS_MODE_FOUR_FRISBEE:
-				driverStationLCD->PrintfLine((DriverStationLCD::Line) 1, "Shoot 4 forward");
-				break;
-		case AUTONOMOUS_MODE_SIT_AND_SHOOT:
-				driverStationLCD->PrintfLine((DriverStationLCD::Line) 1, "Shoot from feeder");
-				break;
-		case AUTONOMOUS_MODE_SEVEN_FRISBEE_FORWARD:
-				driverStationLCD->PrintfLine((DriverStationLCD::Line) 1, "Shoot 7, all forward");
-				break;
-		case AUTONOMOUS_MODE_SEVEN_FRISBEE_BACK:
-				driverStationLCD->PrintfLine((DriverStationLCD::Line) 1, "Shoot 7, forward then back");
-				break;
-		case AUTONOMOUS_MODE_FEED_FRISBEE:
-				driverStationLCD->PrintfLine((DriverStationLCD::Line) 1, "Feed frisbees to another robot");
-				break;
-		}
-
-		driverStationLCD->UpdateLCD();
-	}
-
-	
 	void TeleopPeriodic (void)
 	{
 		static bool stinger_toggled = false;
@@ -408,6 +315,100 @@ public:
 		driverStationLCD->UpdateLCD();
 		
 	}
+
+	
+	void DisabledPeriodic(void)
+	{
+		static Timer button_combo_timer;
+		
+		if (rightStick.GetRawButton(2) == true,
+			leftStick.GetRawButton(2) == true)
+		{
+			button_combo_timer.Start();
+		}
+		else
+		{
+			button_combo_timer.Reset();
+			button_combo_timer.Stop();
+		}
+		
+		if (button_combo_timer.Get() > 2.00)
+		{
+			button_combo_timer.Reset();
+			switch (autonomousMode)
+			{
+			default:
+			case AUTONOMOUS_MODE_SEVEN_FRISBEE_FORWARD:
+//				autonomousMode = AUTONOMOUS_MODE_SEVEN_FRISBEE_BACK;
+//				break;
+//			case AUTONOMOUS_MODE_SEVEN_FRISBEE_BACK:
+				autonomousMode = AUTONOMOUS_MODE_FIVE_FRISBEE_FORWARD;
+				break;
+			case AUTONOMOUS_MODE_FIVE_FRISBEE_FORWARD:
+				autonomousMode = AUTONOMOUS_MODE_THREE_FRISBEE;
+				break;
+			case AUTONOMOUS_MODE_THREE_FRISBEE:
+				autonomousMode = AUTONOMOUS_MODE_SEVEN_FRISBEE_FORWARD;
+				break;
+				
+//			case AUTONOMOUS_MODE_FIVE_FRISBEE_BACK:
+//				autonomousMode = AUTONOMOUS_MODE_FIVE_FRISBEE_FORWARD;
+//				break;
+//			case AUTONOMOUS_MODE_THREE_FRISBEE:
+//				autonomousMode = AUTONOMOUS_MODE_TWO_FRISBEE;
+//				break;
+//			case AUTONOMOUS_MODE_TWO_FRISBEE:
+//				autonomousMode = AUTONOMOUS_MODE_FOUR_FRISBEE;
+//				break;
+//			case AUTONOMOUS_MODE_FOUR_FRISBEE:
+//				autonomousMode = AUTONOMOUS_MODE_SIT_AND_SHOOT;
+//				break;
+//			case AUTONOMOUS_MODE_SIT_AND_SHOOT:
+//				autonomousMode = AUTONOMOUS_MODE_SEVEN_FRISBEE_FORWARD;
+//				break;
+//			
+//			case AUTONOMOUS_MODE_FEED_FRISBEE:
+//				autonomousMode = AUTONOMOUS_MODE_FIVE_FRISBEE_BACK;
+//				break;
+			}
+		}	
+
+		switch (autonomousMode)
+		{
+		default:
+		case AUTONOMOUS_MODE_FIVE_FRISBEE_BACK:
+				driverStationLCD->PrintfLine((DriverStationLCD::Line) 1, "Shoot 5, pickup behind");
+				break;
+		case AUTONOMOUS_MODE_FIVE_FRISBEE_FORWARD:
+				driverStationLCD->PrintfLine((DriverStationLCD::Line) 1, "Shoot 5, pickup forward");
+				break;
+		case AUTONOMOUS_MODE_THREE_FRISBEE:
+				driverStationLCD->PrintfLine((DriverStationLCD::Line) 1, "Shoot 3 frisbees");
+				break;
+		case AUTONOMOUS_MODE_TWO_FRISBEE:
+				driverStationLCD->PrintfLine((DriverStationLCD::Line) 1, "Shoot 2 front");
+				break;
+		case AUTONOMOUS_MODE_FOUR_FRISBEE:
+				driverStationLCD->PrintfLine((DriverStationLCD::Line) 1, "Shoot 4 forward");
+				break;
+		case AUTONOMOUS_MODE_SIT_AND_SHOOT:
+				driverStationLCD->PrintfLine((DriverStationLCD::Line) 1, "Shoot from feeder");
+				break;
+		case AUTONOMOUS_MODE_SEVEN_FRISBEE_FORWARD:
+				driverStationLCD->PrintfLine((DriverStationLCD::Line) 1, "Shoot 7, all forward");
+				break;
+		case AUTONOMOUS_MODE_SEVEN_FRISBEE_BACK:
+				driverStationLCD->PrintfLine((DriverStationLCD::Line) 1, "Shoot 7, forward then back");
+				break;
+		case AUTONOMOUS_MODE_FEED_FRISBEE:
+				driverStationLCD->PrintfLine((DriverStationLCD::Line) 1, "Feed frisbees to another robot");
+				break;
+		}
+
+		driverStationLCD->UpdateLCD();
+	}
+
+	
 		
 	void AutonomousPeriodic (void)
 	{
@@ -434,8 +435,7 @@ public:
 			AutonSevenFrisbeeForward();
 			break;
 		case AUTONOMOUS_MODE_SEVEN_FRISBEE_BACK:
-			//First
-			AutonSevenFrisbeeBack();
+			//AutonSevenFrisbeeBack();
 			break;
 		default:
 		case AUTONOMOUS_MODE_FEED_FRISBEE:
@@ -492,6 +492,7 @@ public:
 		}
 		return false;
 	}
+	
 	bool AutonomousCollectBack(float distance, float time, bool collector_enabled = true, bool reset = false)
 	{
 		if (reset == true)
@@ -536,6 +537,7 @@ public:
 		
 		return false;
 	}
+	
 	bool AutonomousCollectForward(float distance, float time, bool collector_enabled = true, bool reset = false)
 	{
 		if (reset == true)
@@ -552,14 +554,6 @@ public:
 			myRobot.Drive(0.0, 0.0);
 			return true;//Stop motors and return true
 		}
-//		//Slow down before reaching stop point		
-//		else if (autonDrivingForward.Get()  > (time - 0.5) /*|| (limitSwitchLeft.Get() && limitSwitchRight.Get()) || distance_traveled > distance*/)
-//		{
-//			myRobot.Drive(0.75 - (time - autonDrivingForward.Get()), -autonTurnAmount);
-////			myRobot.TankDrive(0.75 -(time - autonDrivingForward.Get()) - autonTurnAmount,0.75 -(time - autonDrivingForward.Get()) + autonTurnAmount);
-//			if (collector_enabled) collector.Collect();
-//			return false;//Stop motors and return true
-//		}
 		else if (autonDrivingForward.Get() > 0.25)
 		{
 			myRobot.Drive(1.0, -autonTurnAmount);//Set speed to 50% and collect
@@ -593,9 +587,6 @@ public:
 				collector.Load();
 			}
 			return true;
-//				 doughnuts = true;
-//				 pinball = true;
-//				 worms4 = true;		 
 		}
 		else
 		{
@@ -643,164 +634,24 @@ public:
 		return false;
 	}
 	
-	void AutonSevenFrisbeeBack(void)
-	{
-		frisbeeShooter.ShootFrisbee(false);//Service the shooter to retract the firing piston
-		switch (autonStepCount)
-		{
-
-		case 0:
-			if (autonReset == true)
-			{
-				autonDrivingForward.Reset();
-				autonDrivingForward.Start();
-			}
-			//Drive forward slowly to detatch from bar
-			frisbeeShooter.SetPower(POWER_AUTONOMOUS_SHOTS);
-			
-			if (autonDrivingForward.Get() > TIME_AUTONOMOUS_SPIN_UP)
-			{
-				autonReset = true;
-				autonStepCount++;
-			}
-			else
-			{
-				autonReset = false;
-			}
-			break;
-		case 1: 	//Shoot 3 frisbees (3sec) and lower collector
-			if (AutonomousShoot(3,true,autonReset, 1.5))
-			{
-				autonReset = true;
-				autonStepCount++;
-			}
-			else
-			{
-				autonReset = false;
-			}
-			break;
-		case 2:
-			if ((AutonomousDislodgeCollector(TIME_AUTONOMOUS_DISLODGE, autonReset) == true) && 
-				(AutonomousLowerCollector() == true))
-			{
-				autonReset = true;
-				autonStepCount++;
-			}
-			else
-			{
-				autonReset = false;
-			}
-			break;
-		case 3: 		//Drive forward and collect
-			if (AutonomousCollectForward(999.0,1.0,true,autonReset)== true)
-			{
-				autonReset = true;
-				autonStepCount++;
-			}
-			else
-			{
-				autonReset = false;
-			}
-	
-			break;
-		case 4:	//Load frisbees
-			myRobot.Drive(0.0,0.0);
-			if (AutonomousLoadFrisbees(true,autonReset))
-			{
-				autonReset = true;
-				autonStepCount++;
-			}
-			else
-			{
-				autonReset = false;
-			}
-			break;
-		case 5:	//Drive back and lower collector
-			if (AutonomousCollectBack(999.0,1.80,true,autonReset) == true)
-			{
-				autonReset = true;
-				autonStepCount++;
-			}
-			else
-			{
-				autonReset = false;
-			}
-			break;
-		case 6:	//Stop motor and begin loading
-			myRobot.Drive(0.0,0.0);
-			AutonomousLoadFrisbees(true,autonReset);
-			if (autonLoading.Get() > 0.5)
-			{
-				autonReset = true;
-				autonStepCount++;
-			}
-			else
-			{
-				autonReset = false;
-			}
-			break;
-		case 7:
-			//Load and Drive Forward without collecting
-			if (AutonomousCollectForward(999.0,1.8,false,autonReset) && AutonomousLoadFrisbees(true,false))
-			{
-				autonReset = true;
-				autonStepCount++;
-			}
-			else
-			{
-				autonReset = false;
-			}
-			break;
-		case 8:
-			//Shoot 4 frisbees (4 seconds)
-			if (AutonomousShoot(4,true,autonReset, 1.5))
-			{
-				autonReset = true;
-				autonStepCount++;
-			}
-			else
-			{
-				autonReset = false;
-			}
-			break;
-		case 9:
-			driverStationLCD->PrintfLine((DriverStationLCD::Line) 3, "Time:%f", timeInAutonomous.Get());
-			timeInAutonomous.Stop();
-			autonReset = true;
-			autonStepCount++;
-			break;
-		case 10:
-			autonReset = true;
-			break;
-		}
-	}
-	
 	void AutonSevenFrisbeeForward(void)
 	{
+		bool condition1, condition2;
 		frisbeeShooter.ShootFrisbee(false);//Service the shooter to retract the firing piston
 		switch (autonStepCount)
 		{
 		case 0:
-			if (autonReset == true)
-			{
-				autonDrivingForward.Reset();
-				autonDrivingForward.Start();
-			}
-			//Drive forward slowly to detatch from bar
-			frisbeeShooter.SetPower(POWER_AUTONOMOUS_SHOTS);
-			
-			if (autonDrivingForward.Get() > TIME_AUTONOMOUS_SPIN_UP)
+			//TODO determine rpm
+			frisbeeShooter.SetRpm(4000);
+			if (frisbeeShooter.IsReady() == true)
 			{
 				autonReset = true;
 				autonStepCount++;
 			}
-			else
-			{
-				autonReset = false;
-			}
+			
 			break;
 		case 1: 	//Shoot 3 frisbees (3sec) and lower collector
-			if (AutonomousShoot(3,true,autonReset, 1.5))
+			if (AutonomousShoot(3,false,autonReset))
 			{
 				autonReset = true;
 				autonStepCount++;
@@ -811,8 +662,9 @@ public:
 			}
 			break;
 		case 2:
-			if ((AutonomousDislodgeCollector(TIME_AUTONOMOUS_DISLODGE, autonReset) == true) && 
-				(AutonomousLowerCollector() == true))
+			condition1 = AutonomousDislodgeCollector(TIME_AUTONOMOUS_DISLODGE, autonReset); 
+			condition2 = AutonomousLowerCollector();
+			if (condition1 && condition2)
 			{
 				autonReset = true;
 				autonStepCount++;
@@ -835,11 +687,14 @@ public:
 	
 			break;
 		case 4:	//Load frisbees
-			myRobot.Drive(0.0,0.0);
-			if (AutonomousLoadFrisbees(true,autonReset))
+			myRobot.Drive(0.25,autonTurnAmount);
+			if (AutonomousLoadFrisbees(true,autonReset) )
 			{
-				autonReset = true;
-				autonStepCount++;
+				if (AutonomousLowerCollector())
+				{
+					autonReset = true;
+					autonStepCount++;
+				}
 			}
 			else
 			{
@@ -847,7 +702,7 @@ public:
 			}
 			break;
 		case 5:	//Drive forward and lower collector
-			if (AutonomousCollectForward(999.0,1.0,true,autonReset) == true)
+			if (AutonomousCollectForward(999.0,0.5,true,autonReset) == true)
 			{
 				autonReset = true;
 				autonStepCount++;
@@ -860,7 +715,7 @@ public:
 		case 6:	//Stop motor and begin loading
 			myRobot.Drive(0.0,0.0);
 			AutonomousLoadFrisbees(true,autonReset);
-			if (autonLoading.Get() > 0.5)
+			if (autonLoading.Get() > 0.25)
 			{
 				autonReset = true;
 				autonStepCount++;
@@ -872,7 +727,9 @@ public:
 			break;
 		case 7:
 			//Load and Drive Backward without collecting
-			if (AutonomousCollectBack(999.0,1.0,false,autonReset) && AutonomousLoadFrisbees(true,false))
+			condition1 = AutonomousCollectBack(999.0,1.0,false,autonReset);
+			condition2 = AutonomousLoadFrisbees(true,false);
+			if (condition1 && condition2)
 			{
 				autonReset = true;
 				autonStepCount++;
@@ -904,7 +761,7 @@ public:
 			break;
 		case 9:
 			//Shoot 4 frisbees (4 seconds)
-			if (AutonomousShoot(4,true,autonReset, 1.5))
+			if (AutonomousShoot(4,true,autonReset))
 			{
 				autonReset = true;
 				autonStepCount++;
@@ -969,6 +826,7 @@ public:
 			break;
 
 		case 2:
+			
 			if ((AutonomousDislodgeCollector(TIME_AUTONOMOUS_DISLODGE, autonReset) == true) && 
 					(AutonomousLowerCollector() == true))
 			{
@@ -1031,8 +889,10 @@ public:
 			}
 			break;
 		case 2:
-			if ((AutonomousDislodgeCollector(TIME_AUTONOMOUS_DISLODGE, autonReset) == true) && 
-				(AutonomousLowerCollector() == true))
+			condition1 = AutonomousDislodgeCollector(TIME_AUTONOMOUS_DISLODGE, autonReset);
+			condition2 = AutonomousLowerCollector();
+			
+			if (condition1 && condition2)
 			{
 				autonReset = true;
 				autonStepCount++;

@@ -10,12 +10,11 @@ Shooter::Shooter (int motor_channel,
 	shooterSemaphore()
 {
 	 wheel_counter = counter;
-	 //wheel_trigger = (void*)0;
-	 max_power=1.f;
-	 ramp_up_rate=0.2;
-     counts_per_revolution=400;
+	 max_power=1.0f;
+	 ramp_up_rate=1.0;
+     //counts_per_revolution=1;
 	 ramp_down_rate=1.0;
-	 filter_constant=0.0;
+	 //filter_constant=0.0;
 	 last_timestamp = 0;
 	 timeTraveling.Reset();
 	 timeTraveling.Start();
@@ -25,22 +24,22 @@ Shooter::Shooter (int motor_channel,
 
 void Shooter::SetPower (float power_level)
 {
-	wheel_motor.Set (power_level);
-
 	shooterSemaphore.take();
+	wheel_motor.Set (power_level);
 	speedControl = false;
 	Pause();
 	shooterSemaphore.give();
-
 }
-void Shooter::SetRpm (int rpm)
+void Shooter::SetRpm (unsigned long int rpm)
 {	
 	shooterSemaphore.take();
 	speedControl = true;
-	target_rpm = rpm;
+	if (rpm == 0)
+		target_usec_per_revolution = 0;
+	else
+		target_usec_per_revolution = FPGA_TIME_TO_MINUTES_FACTOR / rpm;
 	Start();	//Begins the speed control task, only runs if speedControl ==true
 	shooterSemaphore.give();
-
 }
 bool Shooter::IsReady()
 {
@@ -54,7 +53,7 @@ bool Shooter::IsReady()
 			is_ready = true;
 		}
 	}
-	else if (speedControl && (previous_rpm > (0.95 *target_rpm)))
+	else if (speedControl && upToSpeed)
 	{
 		is_ready = true;
 	}
@@ -75,88 +74,92 @@ void Shooter::SetRampUpRate (float rate)
 	ramp_up_rate = rate;
 	shooterSemaphore.give();
 }
-void Shooter::SetCountsPerRevolution (int counts)
-{
-	shooterSemaphore.take();
-	counts_per_revolution = counts;
-	shooterSemaphore.give();
-}
+//void Shooter::SetCountsPerRevolution (int counts)
+//{
+//	shooterSemaphore.take();
+//	counts_per_revolution = counts;
+//	shooterSemaphore.give();
+//}
 void Shooter::SetRampDownRate (float rate)
 {
 	shooterSemaphore.take();
 	ramp_down_rate = rate;
 	shooterSemaphore.give();
 }
-void Shooter::SetFilterConstant (float filter_value)
-{
-	shooterSemaphore.take();
-	filter_constant = filter_value;
-	shooterSemaphore.give();
-}
+//void Shooter::SetFilterConstant (float filter_value)
+//{
+//	shooterSemaphore.take();
+//	filter_constant = filter_value;
+//	shooterSemaphore.give();
+//}
 
 void Shooter::Run(void)
 {
+	if (wheel_counter == (void *)0)
+		return;
 	shooterSemaphore.take();
-    if ((wheel_counter != (void*)0) && 
-		(speedControl == true) &&	//if using an encoder and we last commanded rpm (rather than power) 	
-		(wheel_counter->Get() > 20)) //Ensure a minimum number of counts to prevent poor resolution
-    {
-    	
-        if (last_timestamp == 0)
-        {
-            last_timestamp = GetFPGATime();
-            wheel_counter->Start ();
-            return;
-        }
-        unsigned long int current_time = GetFPGATime();
-        INT32 count_value = wheel_counter->Get();
-        unsigned long int time_difference = current_time - last_timestamp;
-        float revolutions = (float)count_value;
-        if (counts_per_revolution == 1)        	
-        {
-	        revolutions /= (float)counts_per_revolution;
-        	
-        }
-        //previous_rpm = revolutions/(((float)time_difference)/((float)FPGA_TIME_TO_MINUTES_FACTOR));
-        previous_rpm = (revolutions/(float)time_difference) * (float)FPGA_TIME_TO_MINUTES_FACTOR;
-        last_timestamp = GetFPGATime();
-        wheel_counter->Reset();  
-
-        if (previous_rpm < target_rpm)
-    	{
-    		if ((wheel_motor.Get () + ramp_up_rate) < max_power)
-    		{
-    			wheel_motor.Set (wheel_motor.Get() + ramp_up_rate);
-    		}
-    		else 
-    		{
-    			wheel_motor.Set (max_power);
-    		}
-    	}
-    	else
-    	{
-    		wheel_motor.Set (0);
-    	}
-    }	
+	//If a revolution period is longer than the target, drive the motor
+	unsigned long count = wheel_counter->Get();
+	
+	if (target_usec_per_revolution == 0)
+	{
+		upToSpeed = false;
+		wheel_motor.Set(0);
+	}
+	else if (target_usec_per_revolution < count)
+	{
+		if ((wheel_motor.Get () + ramp_up_rate) < max_power)
+		{
+			wheel_motor.Set (wheel_motor.Get() + ramp_up_rate);
+		}
+		else 
+		{
+			wheel_motor.Set (max_power);
+		}
+		//if target * 1.125 < period then we've slowed down enough to not be up to speed
+		if (target_usec_per_revolution + (target_usec_per_revolution >> 3) < count)
+		{
+			upToSpeed = false;
+		}
+	}
+	else
+	{
+		upToSpeed = true;
+		wheel_motor.Set (0);
+	}		
 	shooterSemaphore.give();
 }
 
 float Shooter::GetRpm(void)
 {
-	float retVal;
+	float retVal = 0;
+	if (wheel_counter == (void *)0)
+		return retVal;
+	
 	shooterSemaphore.take();
-	retVal = previous_rpm;
+	if (wheel_counter->GetStopped())
+	{
+		shooterSemaphore.give();
+		return retVal;
+	}
+	
+	retVal = (float)wheel_counter->GetPeriod();
 	shooterSemaphore.give();
+	
+	retVal = (FPGA_TIME_TO_MINUTES_FACTOR / retVal); 
     return retVal;
 }
 
 bool Shooter::ShootFrisbee (bool fire)
 {
 	bool retValue = false;
+	float travel_time = 0.5;
+	if (speedControl == true) travel_time = 0.2;
+	
 	switch (state)
 	{
 		case READY:
-			if (fire && IsReady () && timeTraveling.Get()>=.5)
+			if (fire && IsReady () && (timeTraveling.Get() >= travel_time))
 			{
 				numanumamaticExtend.Set(true);
 				numanumamaticRetract.Set(false);
@@ -167,7 +170,7 @@ bool Shooter::ShootFrisbee (bool fire)
 			}
 			break;
 		case FIRED:
-			if (timeTraveling.Get()>=.5)
+			if (timeTraveling.Get() >= travel_time)
 			{
 				timeTraveling.Reset();
 				timeTraveling.Start();
@@ -181,9 +184,3 @@ bool Shooter::ShootFrisbee (bool fire)
 	}
 	return retValue;
 }
-
-
-
-
-
-

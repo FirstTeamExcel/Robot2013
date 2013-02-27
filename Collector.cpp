@@ -4,7 +4,7 @@
 #define TIME_TO_TRAVEL_DOWN 0.75
 #define TIME_TO_LEAVE_STARTING_POSITION 1.5
 #define TIME_TO_DELAY_TILTER 0.15
-#define SPECIAL_BACK_ROLLER_LOADING_SPEED 0.65
+#define SPECIAL_BACK_ROLLER_LOADING_SPEED 0.75
 
 Collector::Collector (int front_collector_channel,
         int back_collector_channel,
@@ -86,8 +86,15 @@ void Collector::Load(void)
            timeTraveling.Start ();
            break;
        case TRAVELING_UP:
-           frontCollector.Set(0);
-           backCollector.Set(0);
+    	   if (backCollector.Get() == 0.5)
+    	   {
+    		   backCollector.Set(0.51);
+    	   }
+    	   else
+    	   {
+			   backCollector.Set(0);
+    	   }
+		   frontCollector.Set(0);
            if (timeTraveling.Get() >= TIME_TO_DELAY_TILTER)
            {
         	   if (tilterExtend.Get() == false)
