@@ -234,21 +234,39 @@ public:
 	    compressor.Start();
 		//targetCamera.SetDebugMode(operatorStick.GetRawButton(9));
 	    float shot_power = 0;
-		if ((operatorStick.GetRawButton(1)==true)||(leftStick.GetRawButton(1)==true))
+	    float rpm = frisbeeShooter.GetRpm();
+	//Test code
+	    static float test_rpm = 0;
+
+		if (operatorStick.GetRawButton(6) == true)
 		{
-		    //frisbeeShooter.SetRpm(1000);
-		    //frisbeeShooter.SetRpm(((1-operatorStick.GetThrottle())/2)*10000);
-			if (operatorStick.GetRawButton(11)==true)
-			{
-				shot_power = ((1-operatorStick.GetThrottle())/2);
-			}
-			else
-			{
-				shot_power = 0.65;
-			}
+			test_rpm = rpm;	
 		}
-		frisbeeShooter.SetPower(shot_power);
-	    driverStationLCD->PrintfLine((DriverStationLCD::Line) 0, "Power: %f", shot_power);			
+		if (operatorStick.GetRawButton(7) == true)
+		{
+			frisbeeShooter.SetRpm(int(test_rpm));
+		}
+		else
+		{
+	//end Test code
+			if ((operatorStick.GetRawButton(1)==true)||(leftStick.GetRawButton(1)==true))
+			{
+				//frisbeeShooter.SetRpm(1000);
+				//frisbeeShooter.SetRpm(((1-operatorStick.GetThrottle())/2)*10000);
+				if (operatorStick.GetRawButton(11)==true)
+				{
+					shot_power = ((1-operatorStick.GetThrottle())/2);
+				}
+				else
+				{
+					shot_power = 0.65;
+				}
+			}
+			frisbeeShooter.SetPower(shot_power);
+		}
+	    driverStationLCD->PrintfLine((DriverStationLCD::Line) 0, "Power: %f", shot_power);	
+	    driverStationLCD->PrintfLine((DriverStationLCD::Line) 1, "Rpm: %f", rpm);
+	    driverStationLCD->PrintfLine((DriverStationLCD::Line) 2, "TRpm: %f", test_rpm);			
 		
 		//Collector
 		if ((operatorStick.GetRawButton(2)==true )||(leftStick.GetRawButton(2)==true))

@@ -35,9 +35,15 @@ void Shooter::SetRpm (unsigned long int rpm)
 	shooterSemaphore.take();
 	speedControl = true;
 	if (rpm == 0)
-		target_usec_per_revolution = 0;
+	{
+		target_sec_per_revolution = 0;
+		target_sec_per_revolution_slowdown = 0;
+	}
 	else
-		target_usec_per_revolution = FPGA_TIME_TO_MINUTES_FACTOR / rpm;
+	{
+		target_sec_per_revolution = ((double)60.0) / ((double)rpm);
+		target_sec_per_revolution_slowdown = target_sec_per_revolution * 1.1;
+	}
 	Start();	//Begins the speed control task, only runs if speedControl ==true
 	shooterSemaphore.give();
 }
@@ -99,15 +105,15 @@ void Shooter::Run(void)
 		return;
 	shooterSemaphore.take();
 	//If a revolution period is longer than the target, drive the motor
-	unsigned long count = wheel_counter->Get();
+	double period = wheel_counter->GetPeriod();
 	float motor_command = 0.0;
 	
 	
-	if (target_usec_per_revolution == 0)
+	if (target_sec_per_revolution == 0)
 	{
 		upToSpeed = false;
 	}
-	else if (target_usec_per_revolution < count)
+	else if (target_sec_per_revolution < period)
 	{
 //		if ((last_motor_command + ramp_up_rate) < max_power)
 //		{
@@ -121,7 +127,7 @@ void Shooter::Run(void)
 //		}
 		motor_command = max_power;
 		//if target * 1.125 < period then we've slowed down enough to not be up to speed
-		if (target_usec_per_revolution + (target_usec_per_revolution >> 3) < count)
+		if (target_sec_per_revolution_slowdown < period)
 		{
 			upToSpeed = false;
 		}
@@ -155,7 +161,7 @@ float Shooter::GetRpm(void)
 	retVal = (float)wheel_counter->GetPeriod();
 	shooterSemaphore.give();
 	
-	retVal = (FPGA_TIME_TO_MINUTES_FACTOR / retVal); 
+	retVal = (60 / retVal); 
     return retVal;
 }
 

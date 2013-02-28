@@ -11,7 +11,8 @@ public:
 private:  //shooter attributes
 	SHOOTER_STATE state;
 	//int target_rpm;
-	unsigned long int target_usec_per_revolution;
+	double target_sec_per_revolution;
+	double target_sec_per_revolution_slowdown;
 	Counter *wheel_counter;
 	Talon wheel_motor;
 	Solenoid numanumamaticExtend;
