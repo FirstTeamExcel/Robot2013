@@ -20,6 +20,8 @@ Shooter::Shooter (int motor_channel,
 	 timeTraveling.Start();
 	 state = READY;
 	 speedControl = false;
+	 if (wheel_counter != (void *)0)
+		 wheel_counter->Start();
 }
 
 void Shooter::SetPower (float power_level)

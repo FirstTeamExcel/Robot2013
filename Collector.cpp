@@ -20,9 +20,9 @@ Collector::Collector (int front_collector_channel,
             tilterRetract (tilter_retract_channel)
 {
     position = DOWN;
-    loadSpeed=0.5;
-    feedSpeed=0.9;
-    collectSpeed=0.5;
+    loadSpeed=0.6;
+    feedSpeed=1.0;
+    collectSpeed=0.6;
     timeTraveling.Stop();
 }
 

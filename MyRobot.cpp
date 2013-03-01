@@ -51,6 +51,7 @@ typedef enum
     DIGITAL_WHEEL_RIGHT_BACKWARD,
     DIGITAL_WHEEL_LEFT_FORWARD,
     DIGITAL_WHEEL_LEFT_BACKWARD,
+    DIGITAL_SHOOTER_SENSOR,
     DIGITAL_LEFT_COLLECTOR_SWITCH,
     DIGITAL_RIGHT_COLLECTOR_SWITCH,
     DIGITAL_HOPPER_SWITCH,
@@ -144,7 +145,7 @@ public:
 		rightStick(2),
 		operatorStick(3),
 		timeInAutonomous(),
-		//shooterSensor (DIGITAL_SHOOTER_SENSOR),
+		shooterSensor (DIGITAL_SHOOTER_SENSOR),
 		frisbeeShooter(PWM_SHOOTER_WHEEL,&shooterSensor, SOLENOID_SHOOTER_EXTEND, SOLENOID_SHOOTER_RETRACT),
 		robotLifterExtend(SOLENOID_ROBOT_LIFTER_EXTEND),
 		robotLifterRetract(SOLENOID_ROBOT_LIFTER_RETRACT),
@@ -253,7 +254,7 @@ public:
 			{
 				//frisbeeShooter.SetRpm(1000);
 				//frisbeeShooter.SetRpm(((1-operatorStick.GetThrottle())/2)*10000);
-				if (operatorStick.GetRawButton(11)==true)
+				if (operatorStick.GetRawButton(10)==true)
 				{
 					shot_power = ((1-operatorStick.GetThrottle())/2);
 				}
@@ -921,7 +922,7 @@ public:
 			}
 			break;
 		case 3: 		//Drive forward and collect
-			if (AutonomousCollectForward(999.0,1.0,true,autonReset)== true)
+			if (AutonomousCollectForward(999.0,1.05,true,autonReset)== true)
 			{
 				myRobot.Drive(0.0,0.0);
 				autonReset = true;
