@@ -53,6 +53,7 @@ class JankyTask {
    */
   virtual void Run() = 0;
 
+  bool TaskRunning() {return enabled_;}
  private:
   bool enabled_;
   bool running_;

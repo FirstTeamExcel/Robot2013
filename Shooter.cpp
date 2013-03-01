@@ -21,7 +21,12 @@ Shooter::Shooter (int motor_channel,
 	 state = READY;
 	 speedControl = false;
 	 if (wheel_counter != (void *)0)
+	 {
+		 wheel_counter->Reset();
+		 wheel_counter->SetUpSourceEdge(true,false);
+		 wheel_counter->SetMaxPeriod(2.0);
 		 wheel_counter->Start();
+	 }
 }
 
 void Shooter::SetPower (float power_level)
@@ -46,7 +51,13 @@ void Shooter::SetRpm (unsigned long int rpm)
 		target_sec_per_revolution = ((double)60.0) / ((double)rpm);
 		target_sec_per_revolution_slowdown = target_sec_per_revolution * 1.1;
 	}
-	Start();	//Begins the speed control task, only runs if speedControl ==true
+	
+	//if the speed control task isn't running, start it.
+	if (TaskRunning() == false)
+	{
+		last_motor_command = 0;
+		Start();	//Begins the speed control task, only runs if speedControl ==true
+	}
 	shooterSemaphore.give();
 }
 bool Shooter::IsReady()
@@ -149,15 +160,15 @@ void Shooter::Run(void)
 
 float Shooter::GetRpm(void)
 {
-	float retVal = 0;
+	float retVal = -2.0;
 	if (wheel_counter == (void *)0)
-		return retVal;
+		return -1.0;
 	
 	shooterSemaphore.take();
 	if (wheel_counter->GetStopped())
 	{
 		shooterSemaphore.give();
-		return retVal;
+		return 0.0;
 	}
 	
 	retVal = (float)wheel_counter->GetPeriod();
