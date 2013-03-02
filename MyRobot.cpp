@@ -22,6 +22,8 @@
 #define RPM_TELEOP_SHOTS 4000
 #define RPM_FIVE_POINTER     2625
 
+#define AUTON_STRAIGHTEN() myRobot.TankDrive((autonTurnAmount * -4.0), (autonTurnAmount * 4.0))
+
 typedef enum
 {
     PWM_0,
@@ -785,7 +787,7 @@ public:
 			robotLifterRetract.Set(false);
 			if (autonDrivingForward.Get() < 0.5)
 			{
-				myRobot.TankDrive((autonTurnAmount * 2.0), (autonTurnAmount * -2.0));
+				AUTON_STRAIGHTEN();
 			}
 			else
 			{
@@ -804,7 +806,7 @@ public:
 			break;
 		case 9:
 			//Shoot 4 frisbees (4 seconds)
-			if (AutonomousShoot(8,true,autonReset))
+			if (AutonomousShoot(4,true,autonReset))
 			{
 				autonReset = true;
 				autonStepCount++;
@@ -1076,13 +1078,12 @@ public:
 			//tilt up to shoot frisbees
 			if ((autonDrivingForward.Get() < 0.65) && (autonDrivingForward.Get() > 0.15))
 			{
-				myRobot.TankDrive((autonTurnAmount * 2.0), (autonTurnAmount * -2.0));
+				AUTON_STRAIGHTEN();
 			}
 			else
 			{
 				myRobot.Drive(0.0,0.0);
 			}
-			
 			if (autonDrivingForward.Get() >=  0.75)
 			{
 				autonReset = true;
