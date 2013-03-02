@@ -566,7 +566,7 @@ public:
 		return false;
 	}
 	
-	bool AutonomousCollectForward(float distance, float time, bool collector_enabled = true, bool reset = false)
+	bool AutonomousCollectForward(float distance, float time, bool collector_enabled = true, bool reset = false, bool stop_at_end = true)
 	{
 		if (reset == true)
 		{
@@ -579,7 +579,14 @@ public:
 
 		if (autonDrivingForward.Get()> time /*|| (limitSwitchLeft.Get() && limitSwitchRight.Get()) || distance_traveled > distance*/)
 		{
-			myRobot.Drive(0.0, 0.0);
+			if (stop_at_end)
+			{
+				myRobot.Drive(0.0, 0.0);
+			}
+			else
+			{
+				myRobot.Drive(0.25, autonTurnAmount);
+			}
 			return true;//Stop motors and return true
 		}
 		else if (autonDrivingForward.Get() > 0.25)
@@ -600,7 +607,7 @@ public:
 		return false;
 	}
 	
-	bool AutonomousLoadFrisbees(bool use_switch = true, bool reset = false)
+	bool AutonomousLoadFrisbees(bool use_switch = true, bool reset = false, float time = 3.0)
 	{
 		if (reset == true)
 		{
@@ -608,7 +615,7 @@ public:
 			autonLoading.Start();
 		}
 		
-		if ((autonLoading.Get() > 3.0) /*|| (limitSwitchLoader.Get() && use_switch)*/)
+		if ((autonLoading.Get() > time) /*|| (limitSwitchLoader.Get() && use_switch)*/)
 		{
 			if (collector.GetPosition() == Collector::UP)
 			{
@@ -716,7 +723,7 @@ public:
 			break;
 		case 4:	//Load frisbees
 			myRobot.Drive(0.25,autonTurnAmount);
-			if (AutonomousLoadFrisbees(true,autonReset) )
+			if (AutonomousLoadFrisbees(true,autonReset,2.0) )
 			{
 				if (AutonomousLowerCollector())
 				{
@@ -730,7 +737,7 @@ public:
 			}
 			break;
 		case 5:	//Drive forward and lower collector
-			if (AutonomousCollectForward(999.0,0.5,true,autonReset) == true)
+			if (AutonomousCollectForward(999.0,1.0,true,autonReset) == true)
 			{
 				autonReset = true;
 				autonStepCount++;
@@ -755,7 +762,7 @@ public:
 			break;
 		case 7:
 			//Load and Drive Backward without collecting
-			condition1 = AutonomousCollectBack(999.0,1.0,false,autonReset);
+			condition1 = AutonomousCollectBack(999.0,1.4,false,autonReset);
 			condition2 = AutonomousLoadFrisbees(true,false);
 			if (condition1 && condition2)
 			{
@@ -774,9 +781,17 @@ public:
 				autonDrivingForward.Start();
 			}
 			//tilt up to shoot frisbees
-			myRobot.Drive(0.0,0.0);
 			robotLifterExtend.Set(true);
 			robotLifterRetract.Set(false);
+			if (autonDrivingForward.Get() < 0.5)
+			{
+				myRobot.TankDrive((autonTurnAmount * 2.0), (autonTurnAmount * -2.0));
+			}
+			else
+			{
+				myRobot.Drive(0.0,0.0);
+			}
+			
 			if (autonDrivingForward.Get() >=  0.75)
 			{
 				autonReset = true;
@@ -789,7 +804,7 @@ public:
 			break;
 		case 9:
 			//Shoot 4 frisbees (4 seconds)
-			if (AutonomousShoot(4,true,autonReset))
+			if (AutonomousShoot(8,true,autonReset))
 			{
 				autonReset = true;
 				autonStepCount++;
@@ -829,8 +844,8 @@ public:
 				autonDrivingForward.Reset();
 				autonDrivingForward.Start();
 			}
-			frisbeeShooter.SetPower(POWER_AUTONOMOUS_SHOTS);
-
+			//frisbeeShooter.SetPower(POWER_AUTONOMOUS_SHOTS);
+			frisbeeShooter.SetRpm(RPM_AUTONOMOUS_SHOTS);
 			if (autonDrivingForward.Get() > TIME_AUTONOMOUS_SPIN_UP)
 			{
 				autonReset = true;
@@ -1051,10 +1066,31 @@ public:
 			}
 			break;
 		case 4:	//Wait .1 sec
-			if (autonDrivingBack.Get() > 1.9)
+
+			if (autonReset)
+			{
+				autonDrivingForward.Reset();
+				autonDrivingForward.Start();
+			}
+			
+			//tilt up to shoot frisbees
+			if ((autonDrivingForward.Get() < 0.65) && (autonDrivingForward.Get() > 0.15))
+			{
+				myRobot.TankDrive((autonTurnAmount * 2.0), (autonTurnAmount * -2.0));
+			}
+			else
+			{
+				myRobot.Drive(0.0,0.0);
+			}
+			
+			if (autonDrivingForward.Get() >=  0.75)
 			{
 				autonReset = true;
 				autonStepCount++;
+			}
+			else
+			{
+				autonReset = false;
 			}
 			break;
 		case 5:
@@ -1069,7 +1105,7 @@ public:
 				autonReset = false;
 			}
 			break;
-		case 7:
+		case 6:
 			frisbeeShooter.SetRpm(0);
 			collector.Idle();
 			driverStationLCD->PrintfLine((DriverStationLCD::Line) 3, "Time: %f", timeInAutonomous.Get());
@@ -1077,10 +1113,10 @@ public:
 			autonReset = true;
 			autonStepCount++;
 			break;
-		case 8:
+		case 7:
 			autonReset = true;
 			break;
-		case 9:
+		case 8:
 			break;
 		}		
 	}
