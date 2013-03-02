@@ -13,6 +13,7 @@ private:  //shooter attributes
 	//int target_rpm;
 	double target_sec_per_revolution;
 	double target_sec_per_revolution_slowdown;
+	double target_sec_per_revolution_overshoot;
 	Counter *wheel_counter;
 	Talon wheel_motor;
 	Solenoid numanumamaticExtend;
@@ -35,7 +36,7 @@ public: //shooter functions
 	//bool ControlSpeed (void);
 	void SetPower (float power_level);
 	float GetPower (void){return wheel_motor.Get();}
-	void SetRpm (unsigned long int rpm);
+	void SetRpm (float rpm);
 	bool IsReady();
 	void SetMaxPower (float power);
 	void SetRampUpRate (float rate);

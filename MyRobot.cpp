@@ -192,7 +192,7 @@ public:
 		leftBrake.Set(true);
 		rightBrake.Set(true);
 		autonomousMode = AUTONOMOUS_MODE_FIVE_FRISBEE_FORWARD;
-		compressor.Stop();
+		compressor.Start();
 	}
 	
 	void TeleopInit (void)
@@ -239,44 +239,30 @@ public:
 		//targetCamera.SetDebugMode(operatorStick.GetRawButton(9));
 	    float shot_power = 0;
 	    float rpm = frisbeeShooter.GetRpm();
+		static bool previous_shoot_state = false;
 	//Test code
-	    static float test_rpm = 4000.0;
+	    float shot_rpm = 0.0;
 
-
-		if (operatorStick.GetRawButton(8) == true)
+	    if ((operatorStick.GetRawButton(1)==true)||(leftStick.GetRawButton(1)==true))
 		{
-			test_rpm = 4400.0 * ((1-operatorStick.GetThrottle())/2);
-		}
-		else
-		{
-			test_rpm = 4000.0;
-		}
-		
-		if (operatorStick.GetRawButton(9) == true)
-		{
-			frisbeeShooter.SetRpm(int(test_rpm));
-		}
-		else
-		{
-	//end Test code
-			if ((operatorStick.GetRawButton(1)==true)||(leftStick.GetRawButton(1)==true))
+			if (operatorStick.GetRawButton(10)==true)
 			{
-				//frisbeeShooter.SetRpm(1000);
-				//frisbeeShooter.SetRpm(((1-operatorStick.GetThrottle())/2)*10000);
-				if (operatorStick.GetRawButton(10)==true)
-				{
-					shot_power = ((1-operatorStick.GetThrottle())/2);
-				}
-				else
-				{
-					shot_power = 0.65;
-				}
+				shot_rpm = 4400.0 * ((1-operatorStick.GetThrottle())/2);
 			}
-			frisbeeShooter.SetPower(shot_power);
+			else if (robotLifterExtend.Get() == true)
+			{
+				shot_rpm = RPM_FIVE_POINTER;
+			}
+			else
+			{
+				shot_rpm = RPM_TELEOP_SHOTS;
+			}
 		}
-	    driverStationLCD->PrintfLine((DriverStationLCD::Line) 0, "Power: %f", shot_power);	
+
+	    frisbeeShooter.SetRpm(shot_rpm);
+	    driverStationLCD->PrintfLine((DriverStationLCD::Line) 0, "Power: %f", frisbeeShooter.GetPower());	
 	    driverStationLCD->PrintfLine((DriverStationLCD::Line) 1, "Rpm: %f %d", rpm, shooterSensor.Get());
-	    driverStationLCD->PrintfLine((DriverStationLCD::Line) 2, "TRpm: %f", test_rpm);			
+	    driverStationLCD->PrintfLine((DriverStationLCD::Line) 2, "TRpm: %f", shot_rpm);			
 		
 		//Collector
 		if ((operatorStick.GetRawButton(2)==true )||(leftStick.GetRawButton(2)==true))
@@ -293,6 +279,10 @@ public:
 			//barf frisbees
 			collector.Feed();
 		}
+		else if (operatorStick.GetRawButton(5) == true)
+		{
+			collector.Feed(true);
+		}
 		else 
 		{
 			//stop collector
@@ -302,12 +292,22 @@ public:
 		if ((operatorStick.GetRawButton(11)==true )||(rightStick.GetRawButton(1) == true))
 		{
 			//shoot frisbees
-			frisbeeShooter.ShootFrisbee(true);
+			if ((robotLifterExtend.Get() == false) || (previous_shoot_state == false))
+			{
+				previous_shoot_state = frisbeeShooter.ShootFrisbee(true);
+			}
+			else
+			{
+				frisbeeShooter.ShootFrisbee(false);
+			}
 		}
 		else
 		{
+			previous_shoot_state = false;
 			frisbeeShooter.ShootFrisbee(false);
 		}
+
+	    driverStationLCD->PrintfLine((DriverStationLCD::Line) 2, "%d   %d", previous_shoot_state, frisbeeShooter.IsReady());			
 
 		if (leftStick.GetRawButton(3)  && rightStick.GetRawButton(3) && 
 			(stinger_toggled == false) && (robotLifterExtend.Get() == false))
@@ -328,14 +328,14 @@ public:
 			stinger_toggled = false;
 		}
 		
-		if (frisbeeShooter.GetPower() != 0.0)
-		{
-			compressor.Stop();
-		}
-		else
-		{
-			compressor.Start();
-		}
+//		if (frisbeeShooter.GetPower() != 0.0)
+//		{
+//			compressor.Stop();
+//		}
+//		else
+//		{
+//			compressor.Start();
+//		}
 		
 		//frisbeeShooter.ControlSpeed();
 		myRobot.TankDrive(-leftStick.GetY(), -rightStick.GetY()); // drive with arcade style (use right stick)
@@ -469,14 +469,14 @@ public:
 		case AUTONOMOUS_MODE_FEED_FRISBEE:
 			break;
 		}
-		if (frisbeeShooter.GetPower() != 0.0)
-		{
-			compressor.Stop();
-		}
-		else
-		{
-			compressor.Start();
-		}
+//		if (frisbeeShooter.GetPower() != 0.0)
+//		{
+//			compressor.Stop();
+//		}
+//		else
+//		{
+//			compressor.Start();
+//		}
 		//myRobot.Drive(forwardSpeed, curve); curve less than 0 turns left, curve greater than zero turns right
 		autonTurnAmount = gyro.GetAngle() / 100;
 		if (autonTurnAmount > 0.1) autonTurnAmount = 0.1;
@@ -550,7 +550,7 @@ public:
 		{
 			//TODO use the encoder turn rate
 //			myRobot.Drive(-0.75, -.1);//Set speed to 50% and collect
-			myRobot.Drive(-0.75, autonTurnAmount);//Set speed to 50% and collect
+			myRobot.Drive(-0.40, autonTurnAmount);//Set speed to 50% and collect
 //			myRobot.TankDrive(-0.75 - autonTurnAmount, -0.75 + autonTurnAmount);
 			if (collector_enabled) collector.Collect();
 			return false;//Return false
@@ -878,7 +878,7 @@ public:
 		}
 	}
 		//TODO
-	void AutonFiveFrisbeeForward(void)
+	void AutonFiveFrisbeeForwardPower(void)
 	{
 		bool condition1, condition2;
 		frisbeeShooter.ShootFrisbee(false);//Service the shooter to retract the firing piston
@@ -990,7 +990,7 @@ public:
 		}		
 	}
 
-	void AutonFiveFrisbeeForwardRpm(void)
+	void AutonFiveFrisbeeForward(void)
 	{
 		bool condition1, condition2;
 		frisbeeShooter.ShootFrisbee(false);//Service the shooter to retract the firing piston
@@ -1000,7 +1000,7 @@ public:
 		case 0: 	//Shoot 3 frisbees (3sec) and lower collector
 
 			frisbeeShooter.SetRpm(RPM_AUTONOMOUS_SHOTS);
-			if (AutonomousShoot(3,true,autonReset))
+			if (AutonomousShoot(3,true,autonReset, 0.5))
 			{
 				autonReset = true;
 				autonStepCount++;
@@ -1039,7 +1039,7 @@ public:
 			break;
 		case 3:	//Load frisbees and drive back
 			condition1 = AutonomousLoadFrisbees(true,autonReset);
-			condition2 = AutonomousCollectBack(999.0,1.45,false,autonReset);
+			condition2 = AutonomousCollectBack(999.0,1.8,false,autonReset);
 			if (condition1 && condition2)
 			{
 				autonReset = true;
@@ -1051,7 +1051,7 @@ public:
 			}
 			break;
 		case 4:	//Wait .1 sec
-			if (autonDrivingBack.Get() > 1.55)
+			if (autonDrivingBack.Get() > 1.9)
 			{
 				autonReset = true;
 				autonStepCount++;
@@ -1059,7 +1059,7 @@ public:
 			break;
 		case 5:
 			//Shoot 2 frisbees (2 seconds)
-			if (AutonomousShoot(2,true,autonReset))
+			if (AutonomousShoot(6,true,autonReset,0.5))
 			{
 				autonReset = true;
 				autonStepCount++;
@@ -1071,6 +1071,7 @@ public:
 			break;
 		case 7:
 			frisbeeShooter.SetRpm(0);
+			collector.Idle();
 			driverStationLCD->PrintfLine((DriverStationLCD::Line) 3, "Time: %f", timeInAutonomous.Get());
 			timeInAutonomous.Stop();
 			autonReset = true;

@@ -26,17 +26,22 @@ Collector::Collector (int front_collector_channel,
     timeTraveling.Stop();
 }
 
-void Collector::Feed(void)
+void Collector::Feed(bool feed_forward)
 {
+	float speed = feedSpeed;
+	if (feed_forward == true)
+	{
+		speed = -feedSpeed;
+	}
     switch (position)
     {
         case UP:
-            frontCollector.Set(feedSpeed);
-            backCollector.Set(feedSpeed);
+            frontCollector.Set(speed);
+            backCollector.Set(speed);
             break;
         case DOWN:
-            frontCollector.Set(feedSpeed);
-            backCollector.Set(feedSpeed);
+            frontCollector.Set(speed);
+            backCollector.Set(speed);
             break;
         case TRAVELING_UP:
             frontCollector.Set(0);
@@ -55,8 +60,8 @@ void Collector::Feed(void)
             }
             break;
         case STARTING_POSITION:
-            frontCollector.Set(-feedSpeed);
-            backCollector.Set(feedSpeed);
+            frontCollector.Set(speed);
+            backCollector.Set(speed);
             break;
         case LEAVING_STARTING_POSITION:
             if (timeTraveling.Get()>= TIME_TO_LEAVE_STARTING_POSITION)
