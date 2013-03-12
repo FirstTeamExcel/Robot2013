@@ -17,10 +17,12 @@ Collector::Collector (int front_collector_channel,
             lifterExtend (lifter_extend_channel),
             lifterRetract (lifter_retract_channel),
             tilterExtend (tilter_extend_channel),
-            tilterRetract (tilter_retract_channel)
+            tilterRetract (tilter_retract_channel),
+            extraLifterExtend(2, 3),
+            extraLifterRetract(2, 4)
 {
     position = DOWN;
-    loadSpeed=0.55;
+    loadSpeed=0.45;
     feedSpeed=1.0;
     collectSpeed=0.6;
     timeTraveling.Stop();
@@ -85,6 +87,8 @@ void Collector::Load(void)
            frontCollector.Set(0);
            backCollector.Set(0);
            lifterExtend.Set(true);
+           extraLifterExtend.Set(true);
+           extraLifterRetract.Set(false);
            lifterRetract.Set(false);
            position = TRAVELING_UP;
            timeTraveling.Reset ();
@@ -137,6 +141,8 @@ void Collector::Collect(void)
            backCollector.Set(0);
            lifterRetract.Set(true);               
            lifterExtend.Set(false);
+           extraLifterExtend.Set(false);
+           extraLifterRetract.Set(true);
            tilterExtend.Set(false);
            tilterRetract.Set(true);
            position = TRAVELING_DOWN;
@@ -218,7 +224,11 @@ void Collector::EnterStartingPosition(void)
    timeTraveling.Reset();
    timeTraveling.Stop();
    lifterExtend.Set(true);
+   extraLifterExtend.Set(true);
    lifterRetract.Set(false);
+   extraLifterRetract.Set(false);
+   tilterExtend.Set(false);
+   tilterRetract.Set(true);
 }
 
 void Collector::LeaveStartingPosition(void)
@@ -229,7 +239,9 @@ void Collector::LeaveStartingPosition(void)
 	    timeTraveling.Reset();
 	    timeTraveling.Start();
 	    lifterExtend.Set(true);
+	    extraLifterExtend.Set(true);
 	    lifterRetract.Set(false);
+	    extraLifterRetract.Set(false);
 	    tilterExtend.Set(true);
 	    tilterRetract.Set(false);
 	}

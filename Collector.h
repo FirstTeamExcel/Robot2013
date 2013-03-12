@@ -18,6 +18,8 @@ private: //Keep out Connor!!!
     Solenoid lifterRetract;
     Solenoid tilterExtend;
     Solenoid tilterRetract;
+    Solenoid extraLifterExtend;
+    Solenoid extraLifterRetract;
     Timer timeTraveling;
     
     
