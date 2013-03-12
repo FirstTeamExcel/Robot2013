@@ -1,5 +1,7 @@
 #include "Shooter.h"
 
+#define POWER_DURING_SHOT 0.50
+
 Shooter::Shooter (int motor_channel, 
 		Counter *counter,
 		int numanumamatic_extend_channel,
@@ -54,7 +56,7 @@ void Shooter::SetRpm (float rpm)
 	}
 	
 	//if the speed control task isn't running, start it.
-	if (TaskRunning() == false)
+	if ((TaskRunning() == false) && (state == READY))
 	{
 		last_motor_command = 0;
 		Start();	//Begins the speed control task, only runs if speedControl ==true
@@ -141,14 +143,15 @@ void Shooter::Run(void)
 //		}
 		motor_command = max_power;
 		//if target * 1.125 < period then we've slowed down enough to not be up to speed
-		if ((target_sec_per_revolution_slowdown < period) || (target_sec_per_revolution_overshoot > period)) 
-		{
-			upToSpeed = false;
-		}
+		
 	}
 	else
 	{
 		upToSpeed = true;
+	}
+	if ((target_sec_per_revolution_slowdown < period) || (target_sec_per_revolution_overshoot > period)) 
+	{
+		upToSpeed = false;
 	}
 	
 	if (last_motor_command != motor_command)
@@ -190,6 +193,10 @@ bool Shooter::ShootFrisbee (bool fire)
 		case READY:
 			if (fire && IsReady () && (timeTraveling.Get() >= travel_time))
 			{
+				shooterSemaphore.take();
+				wheel_motor.Set(POWER_DURING_SHOT);
+				last_motor_command = POWER_DURING_SHOT;
+				shooterSemaphore.give();
 				numanumamaticExtend.Set(true);
 				numanumamaticRetract.Set(false);
 				timeTraveling.Reset();
@@ -206,6 +213,7 @@ bool Shooter::ShootFrisbee (bool fire)
 
 				shooterSemaphore.take();
 				upToSpeed = false;
+				Start();
 				shooterSemaphore.give();
 				numanumamaticExtend.Set(false);
 				numanumamaticRetract.Set(true);
