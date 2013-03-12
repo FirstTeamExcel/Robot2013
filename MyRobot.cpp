@@ -867,7 +867,7 @@ public:
 				myRobot.Drive(0.0,0.0);
 			}
 			
-			if (autonDrivingForward.Get() >=  0.75)
+			if (autonDrivingForward.Get() >=  1.0)
 			{
 				autonReset = true;
 				autonStepCount++;
