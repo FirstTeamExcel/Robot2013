@@ -3,6 +3,7 @@
 #include "TargetCamera.h"
 #include "Collector.h"
 #include "Donuts"
+#include "math.h"
 
 /**
  * This is a demo program showing the use of the RobotBase class.
@@ -23,6 +24,7 @@
 #define RPM_FIVE_POINTER     2625
 
 #define AUTON_STRAIGHTEN() myRobot.TankDrive((autonTurnAmount * -4.0), (autonTurnAmount * 4.0))
+#define AUTON_SPEED_CORRECT_FACTOR 0.5
 
 typedef enum
 {
@@ -156,6 +158,7 @@ class RobotDemo : public IterativeRobot
 	int autonShotCount;
 	int autonStepCount;
 	float autonTurnAmount;
+	float autonSpeedCorrect;
 	bool autonReset;	
 
 public:
@@ -247,6 +250,7 @@ public:
 		leftEncoder.Start();
 		rightEncoder.Start();
 		autonTurnAmount = 0;
+		autonSpeedCorrect = 0;
 		gyro.Reset();
 		leftBrake.Set(false);
 		rightBrake.Set(false);
@@ -556,9 +560,8 @@ public:
 		autonTurnAmount = gyro.GetAngle() / 100;
 		if (autonTurnAmount > 0.1) autonTurnAmount = 0.1;
 		if (autonTurnAmount < -0.1) autonTurnAmount = -0.1;
-		//autonTurnAmount = 2 * ((leftEncoder.Get() - rightEncoder.Get()) / (leftEncoder.Get() + rightEncoder.Get()));
-		//if (autonTurnAmount > 0.15) autonTurnAmount = 0.15;
-		//if (autonTurnAmount < -0.15) autonTurnAmount = -0.15;
+		
+		autonSpeedCorrect = fabsf(autonTurnAmount) * AUTON_SPEED_CORRECT_FACTOR;  
 				
 		driverStationLCD->PrintfLine((DriverStationLCD::Line) 2, "Auton Step: %d", autonStepCount);
 		driverStationLCD->PrintfLine((DriverStationLCD::Line) 4, "L:%d, R:%d T:%f", leftEncoder.Get(), rightEncoder.Get(), autonTurnAmount);
@@ -603,6 +606,7 @@ public:
 			leftEncoder.Reset();
 			rightEncoder.Reset();
 			autonTurnAmount = 0;
+			autonSpeedCorrect = 0;
 			autonDrivingBack.Reset();
 			autonDrivingBack.Start();
 		}
@@ -615,25 +619,20 @@ public:
 		//Slow down before reaching stop point
 		else if (autonDrivingBack.Get()  > (time - 0.5) /*|| (limitSwitchLeft.Get() && limitSwitchRight.Get()) || distance_traveled > distance*/)
 		{
-			myRobot.Drive(-0.1, autonTurnAmount);
-			//myRobot.Drive(-0.75 + (time - autonDrivingBack.Get()), autonTurnAmount);
-//			myRobot.TankDrive(-0.75 +(time - autonDrivingBack.Get()) - autonTurnAmount, -0.25 +(time - autonDrivingBack.Get()) + autonTurnAmount);
+			myRobot.Drive(-(0.1 + autonSpeedCorrect) , autonTurnAmount);
 			if (collector_enabled) collector.Collect();
 			return false;//Stop motors and return true
 		}
 		else if (autonDrivingBack.Get() > 0.25)
 		{
 			//TODO use the encoder turn rate
-//			myRobot.Drive(-0.75, -.1);//Set speed to 50% and collect
-			myRobot.Drive(-0.40, autonTurnAmount);//Set speed to 50% and collect
-//			myRobot.TankDrive(-0.75 - autonTurnAmount, -0.75 + autonTurnAmount);
+			myRobot.Drive(-(0.40 + autonSpeedCorrect), autonTurnAmount);//Set speed to 50% and collect
 			if (collector_enabled) collector.Collect();
 			return false;//Return false
 		}
 		else
 		{
-			myRobot.Drive(-0.25 - (autonDrivingBack.Get() * 2.0), autonTurnAmount);//Set speed to 50% and collect
-//			myRobot.TankDrive(-0.25 - autonDrivingBack.Get() - autonTurnAmount, -0.25 - autonDrivingBack.Get() + autonTurnAmount);
+			myRobot.Drive(-(0.25 + autonSpeedCorrect) - (autonDrivingBack.Get() * 2.0), autonTurnAmount);//Set speed to 50% and collect
 			if (collector_enabled) collector.Collect();
 			return false;//Return false
 		}
@@ -648,6 +647,7 @@ public:
 			leftEncoder.Reset();
 			rightEncoder.Reset();
 			autonTurnAmount = 0;
+			autonSpeedCorrect = 0;
 			autonDrivingForward.Reset();
 			autonDrivingForward.Start();
 		}
@@ -660,7 +660,7 @@ public:
 			}
 			else
 			{
-				myRobot.Drive(0.25, -autonTurnAmount);
+				myRobot.Drive(0.25 + autonSpeedCorrect, -autonTurnAmount);
 			}
 			return true;//Stop motors and return true
 		}
@@ -673,7 +673,7 @@ public:
 		}
 		else
 		{
-			myRobot.Drive(0.5 + (autonDrivingForward.Get() * 2.0), -autonTurnAmount);//Set speed to 50% and collect
+			myRobot.Drive(0.5 + autonSpeedCorrect + (autonDrivingForward.Get() * 2.0), -autonTurnAmount);//Set speed to 50% and collect
 //			myRobot.TankDrive(0.5 - (autonDrivingForward.Get() * 2.0) - autonTurnAmount, 0.5 - (autonDrivingForward.Get() * 2.0) + autonTurnAmount);
 			if (collector_enabled) collector.Collect();
 			return false;//Return false
@@ -797,7 +797,7 @@ public:
 	
 			break;
 		case 4:	//Load frisbees
-			myRobot.Drive(0.20,-autonTurnAmount);
+			myRobot.Drive(0.20 + autonSpeedCorrect,-autonTurnAmount);
 			if (AutonomousLoadFrisbees(true,autonReset,2.0) )
 			{
 				if (AutonomousLowerCollector())
@@ -1017,7 +1017,7 @@ public:
 			break;
 		case 3:	//Load frisbees and drive back
 			condition1 = AutonomousLoadFrisbees(true,autonReset);
-			condition2 = AutonomousCollectBack(999.0,1.95,false,autonReset);
+			condition2 = AutonomousCollectBack(999.0,1.8,false,autonReset);
 			if (condition1 && condition2)
 			{
 				autonReset = true;
