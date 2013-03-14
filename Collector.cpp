@@ -247,6 +247,86 @@ void Collector::LeaveStartingPosition(void)
 	}
 }
 
+
+bool Collector::Raise(void)
+{
+    bool retVal = false;
+    frontCollector.Set(0);
+    backCollector.Set(0);
+    switch (position)
+    {
+    case DOWN:
+    case TRAVELING_DOWN:
+        timeTraveling.Reset ();
+        timeTraveling.Start ();
+    case TRAVELING_UP:
+        lifterRetract.Set(false);               
+        lifterExtend.Set(true);
+        extraLifterRetract.Set(false);
+        extraLifterExtend.Set(true);
+        tilterExtend.Set(true);
+        tilterRetract.Set(false);
+        if (timeTraveling.Get()>= TIME_TO_TRAVEL_UP)
+        {
+           position = UP;
+        }
+        break;
+    case STARTING_POSITION:
+      	   break;
+    case LEAVING_STARTING_POSITION:
+        if (timeTraveling.Get()>=TIME_TO_LEAVE_STARTING_POSITION)
+        {
+            position = UP;
+        }
+        break;
+    case UP:
+        retVal = true;
+        break;
+    }
+    	
+	
+    return retVal;
+}
+
+bool Collector::Lower(void)
+{
+    bool retVal = false;
+	frontCollector.Set(0);
+   	backCollector.Set(0);
+    switch (position)
+    {
+    case UP:
+    case TRAVELING_UP:
+        timeTraveling.Reset ();
+        timeTraveling.Start ();
+    case TRAVELING_DOWN:
+        lifterRetract.Set(true);               
+        lifterExtend.Set(false);
+        extraLifterRetract.Set(true);
+        extraLifterExtend.Set(false);
+        tilterExtend.Set(false);
+        tilterRetract.Set(true);
+        if (timeTraveling.Get()>= TIME_TO_TRAVEL_DOWN)
+        {
+            position = DOWN;
+        }
+        break;
+    case STARTING_POSITION:
+        
+        break;
+    case LEAVING_STARTING_POSITION:
+        if (timeTraveling.Get()>=TIME_TO_LEAVE_STARTING_POSITION)
+        {
+            position = UP;
+        }
+        break;
+    case DOWN:
+        retVal = true;
+        break;
+    }
+
+    return retVal;
+}
 //float Collector::GetCollectSpeed(void)
 //{
 //    return collectSpeed; 

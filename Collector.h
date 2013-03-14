@@ -41,6 +41,8 @@ public:
     void Load (void);
     void Collect (void);
     void Idle (void);
+    bool Raise(void);
+    bool Lower(void);
     void EnterStartingPosition (void);
     void LeaveStartingPosition (void);
 };
