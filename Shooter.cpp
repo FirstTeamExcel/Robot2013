@@ -182,11 +182,15 @@ float Shooter::GetRpm(void)
     return retVal;
 }
 
-bool Shooter::ShootFrisbee (bool fire)
+bool Shooter::ShootFrisbee (bool fire, bool really_fast)
 {
 	bool retValue = false;
 	float travel_time = 0.5;
-	if (speedControl == true) travel_time = 0.25;
+	if (speedControl == true)
+	{
+		travel_time = 0.25;
+		if (really_fast == true)travel_time = 0.2;
+	}
 	
 	switch (state)
 	{

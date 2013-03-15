@@ -44,7 +44,7 @@ public: //shooter functions
 	void SetRampDownRate (float rate);
 	//void SetFilterConstant (float filter_value); filter not implemented
 	float GetRpm (void);
-	bool ShootFrisbee (bool fire);
+	bool ShootFrisbee (bool fire, bool really_fast = false);
 	void Run(void);
 };
 

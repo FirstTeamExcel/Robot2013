@@ -4,7 +4,7 @@
 #define TIME_TO_TRAVEL_DOWN 0.75
 #define TIME_TO_LEAVE_STARTING_POSITION 1.5
 #define TIME_TO_DELAY_TILTER 0.15
-#define SPECIAL_BACK_ROLLER_LOADING_SPEED 0.75
+#define SPECIAL_BACK_ROLLER_LOADING_SPEED 0.70
 
 Collector::Collector (int front_collector_channel,
         int back_collector_channel,
@@ -22,7 +22,7 @@ Collector::Collector (int front_collector_channel,
             extraLifterRetract(2, 4)
 {
     position = DOWN;
-    loadSpeed=0.45;
+    loadSpeed=0.40;
     feedSpeed=1.0;
     collectSpeed=0.6;
     timeTraveling.Stop();
@@ -108,7 +108,7 @@ void Collector::Load(void)
            {
         	   if (tilterExtend.Get() == false)
         	   {
-        		   backCollector.Set(.5);
+        		   backCollector.Set(.8);
         	   }
                tilterExtend.Set(true);
                tilterRetract.Set(false);
@@ -191,7 +191,7 @@ void Collector::Idle(void)
            {
         	   if (tilterExtend.Get() == false)
         	   {
-        		   backCollector.Set(.5);
+        		   backCollector.Set(.8);
         	   }
                tilterExtend.Set(true);
                tilterRetract.Set(false);
@@ -259,6 +259,7 @@ bool Collector::Raise(void)
     case TRAVELING_DOWN:
         timeTraveling.Reset ();
         timeTraveling.Start ();
+        position = TRAVELING_UP;
     case TRAVELING_UP:
         lifterRetract.Set(false);               
         lifterExtend.Set(true);
@@ -299,6 +300,7 @@ bool Collector::Lower(void)
     case TRAVELING_UP:
         timeTraveling.Reset ();
         timeTraveling.Start ();
+        position = TRAVELING_DOWN;
     case TRAVELING_DOWN:
         lifterRetract.Set(true);               
         lifterExtend.Set(false);
