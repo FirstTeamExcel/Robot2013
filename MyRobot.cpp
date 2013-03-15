@@ -3,7 +3,7 @@
 #include "TargetCamera.h"
 #include "Collector.h"
 #include "Donuts"
-#include "math.h"
+//#include "math.h"
 
 /**
  * This is a demo program showing the use of the RobotBase class.
@@ -561,8 +561,11 @@ public:
 		if (autonTurnAmount > 0.1) autonTurnAmount = 0.1;
 		if (autonTurnAmount < -0.1) autonTurnAmount = -0.1;
 		
-		autonSpeedCorrect = fabsf(autonTurnAmount) * AUTON_SPEED_CORRECT_FACTOR;  
-				
+		//autonSpeedCorrect = fabsf(autonTurnAmount) * AUTON_SPEED_CORRECT_FACTOR;
+		
+		autonSpeedCorrect = (autonTurnAmount) * AUTON_SPEED_CORRECT_FACTOR;
+		if (autonSpeedCorrect < 0.0) autonSpeedCorrect = autonSpeedCorrect * -1.0;
+		
 		driverStationLCD->PrintfLine((DriverStationLCD::Line) 2, "Auton Step: %d", autonStepCount);
 		driverStationLCD->PrintfLine((DriverStationLCD::Line) 4, "L:%d, R:%d T:%f", leftEncoder.Get(), rightEncoder.Get(), autonTurnAmount);
 		driverStationLCD->UpdateLCD();
@@ -598,7 +601,7 @@ public:
 		}
 		return false;
 	}
-	
+
 	bool AutonomousCollectBack(float distance, float time, bool collector_enabled = true, bool reset = false)
 	{
 		if (reset == true)
@@ -627,6 +630,74 @@ public:
 		{
 			//TODO use the encoder turn rate
 			myRobot.Drive(-(0.40 + autonSpeedCorrect), autonTurnAmount);//Set speed to 50% and collect
+			if (collector_enabled) collector.Collect();
+			return false;//Return false
+		}
+		else
+		{
+			myRobot.Drive(-(0.25 + autonSpeedCorrect) - (autonDrivingBack.Get() * 2.0), autonTurnAmount);//Set speed to 50% and collect
+			if (collector_enabled) collector.Collect();
+			return false;//Return false
+		}
+		
+		return false;
+	}
+
+	bool AutonomousCollectBackFast(float distance, float time, bool collector_enabled = true, bool reset = false)
+	{
+		if (reset == true)
+		{
+			leftEncoder.Reset();
+			rightEncoder.Reset();
+			autonTurnAmount = 0;
+			autonSpeedCorrect = 0;
+			autonDrivingBack.Reset();
+			autonDrivingBack.Start();
+		}
+		
+		if (autonDrivingBack.Get() > time /*|| (limitSwitchLeft.Get() && limitSwitchRight.Get()) || distance_traveled > distance*/)
+		{
+			myRobot.Drive(0.0, 0.0);
+			return true;//Stop motors and return true
+		}
+		else if (autonDrivingBack.Get() > 0.25)
+		{
+			//TODO use the encoder turn rate
+			myRobot.Drive(-(0.70 + autonSpeedCorrect), autonTurnAmount);//Set speed to 50% and collect
+			if (collector_enabled) collector.Collect();
+			return false;//Return false
+		}
+		else
+		{
+			myRobot.Drive(-(0.25 + autonSpeedCorrect) - (autonDrivingBack.Get() * 2.0), autonTurnAmount);//Set speed to 50% and collect
+			if (collector_enabled) collector.Collect();
+			return false;//Return false
+		}
+		
+		return false;
+	}
+	
+	bool AutonomousCollectBackReallyFast(float distance, float time, bool collector_enabled = true, bool reset = false)
+	{
+		if (reset == true)
+		{
+			leftEncoder.Reset();
+			rightEncoder.Reset();
+			autonTurnAmount = 0;
+			autonSpeedCorrect = 0;
+			autonDrivingBack.Reset();
+			autonDrivingBack.Start();
+		}
+		
+		if (autonDrivingBack.Get() > time /*|| (limitSwitchLeft.Get() && limitSwitchRight.Get()) || distance_traveled > distance*/)
+		{
+			myRobot.Drive(0.0, 0.0);
+			return true;//Stop motors and return true
+		}
+		else if (autonDrivingBack.Get() > 0.25)
+		{
+			//TODO use the encoder turn rate
+			myRobot.Drive(-(1.00 + autonSpeedCorrect), autonTurnAmount);//Set speed to 50% and collect
 			if (collector_enabled) collector.Collect();
 			return false;//Return false
 		}
@@ -785,7 +856,7 @@ public:
 			}
 			break;
 		case 3: 		//Drive forward and collect
-			if (AutonomousCollectForward(999.0,1.0,true,autonReset)== true)
+			if (AutonomousCollectForward(999.0,1.1,true,autonReset)== true)
 			{
 				autonReset = true;
 				autonStepCount++;
@@ -812,7 +883,7 @@ public:
 			}
 			break;
 		case 5:	//Drive forward and lower collector
-			if (AutonomousCollectForward(999.0,0.75,true,autonReset) == true)
+			if (AutonomousCollectForward(999.0,0.65,true,autonReset) == true)
 			{
 				autonReset = true;
 				autonStepCount++;
@@ -1104,7 +1175,7 @@ public:
 				break;
 			case 1: 	//Shoot 3 frisbees (3sec) and lower collector
 
-				condition1 = AutonomousDislodgeCollector(TIME_AUTONOMOUS_DISLODGE, autonReset); 
+				//TODO condition1 = AutonomousDislodgeCollector(TIME_AUTONOMOUS_DISLODGE, autonReset); 
 				condition2 = AutonomousShoot(3,false,autonReset);
 				if (condition2)
 				{
@@ -1118,7 +1189,7 @@ public:
 				break;
 			case 2:
 				condition1 = AutonomousDislodgeCollector(TIME_AUTONOMOUS_DISLODGE, autonReset); 
-				condition2 = AutonomousLowerCollector();
+				condition2 = collector.Lower();
 				if (condition1 && condition2)
 				{
 					autonReset = true;
@@ -1130,7 +1201,7 @@ public:
 				}
 				break;
 			case 3: 		//Drive forward and collect
-				if (AutonomousCollectForward(999.0,1.0,true,autonReset)== true)
+				if (AutonomousCollectForward(999.0,1.25,true,autonReset)== true)
 				{
 					autonReset = true;
 					autonStepCount++;
@@ -1143,7 +1214,7 @@ public:
 				break;
 			case 4:	//Load frisbees
 				myRobot.Drive(0.20 + autonSpeedCorrect,-autonTurnAmount);
-				if (AutonomousLoadFrisbees(true,autonReset,2.0) )
+				if (AutonomousLoadFrisbees(true,autonReset,1.5) )
 				{
 					if (AutonomousLowerCollector())
 					{
@@ -1182,14 +1253,13 @@ public:
 				break;
 			case 7:
 				//Load and Drive Backward without collecting
-				condition1 = AutonomousCollectBack(999.0,2.5,false,autonReset);
-				condition2 = AutonomousLoadFrisbees(true,false, 2.0);
-				if (condition2)
-				{
-					collector.Collect();
-				}
+				AutonomousCollectBackReallyFast(999.0,2.6,false,autonReset);
 				
-				if (condition1 && condition2)
+				if (AutonomousLoadFrisbees(true,false, 1.5))
+				{
+					collector.Lower();
+				}
+				if (autonDrivingBack.Get() > 1.4)
 				{
 					autonReset = true;
 					autonStepCount++;
@@ -1200,8 +1270,10 @@ public:
 				}
 				break;
 			case 8:
-				//Shoot 4 frisbees (4 seconds)
-				if (AutonomousShoot(8,true,autonReset))
+				//Shoot 2 while driving (like a boss)
+
+				AutonomousCollectBackReallyFast(999.0,2.6,false,false);
+				if (AutonomousShoot(2,true,autonReset))
 				{
 					autonReset = true;
 					autonStepCount++;
@@ -1213,12 +1285,46 @@ public:
 				break;
 			case 9:
 
+				if (AutonomousCollectBackReallyFast(999.0,2.6,true, false))
+				{
+					autonReset = true;
+					autonStepCount++;
+				}
+				else
+				{
+					autonReset = false;
+				}
+			case 10:
+				condition1 = AutonomousLoadFrisbees(false, autonReset, 1.5);
+				condition2 = AutonomousShoot(2,false,autonReset);
+				if (condition1 && condition2)
+				{
+					autonReset = true;
+					autonStepCount++;
+				}
+				else
+				{
+					autonReset = false;
+				}
+				break;
+			case 11:
+				if (AutonomousShoot(2,false,autonReset))
+				{
+					autonReset = true;
+					autonStepCount++;
+				}
+				else
+				{
+					autonReset = false;
+				}
+				break;
+			case 12:
 				driverStationLCD->PrintfLine((DriverStationLCD::Line) 3, "Time: %f", timeInAutonomous.Get());
 				timeInAutonomous.Stop();
 				autonReset = true;
 				autonStepCount++;
 				break;
-			case 10:
+			case 13:
 				autonReset = true;
 				break;
 					
@@ -1305,7 +1411,7 @@ public:
 				}
 				break;
 			case 5:	//Drive forward and lower collector
-				if (AutonomousCollectForward(999.0,0.75,true,autonReset) == true)
+				if (AutonomousCollectForward(999.0,0.6,true,autonReset) == true)
 				{
 					autonReset = true;
 					autonStepCount++;
@@ -1330,11 +1436,11 @@ public:
 				break;
 			case 7:
 				//Load and Drive Backward without collecting
-				condition1 = AutonomousCollectBack(999.0,2.5,false,autonReset);
+				condition1 = AutonomousCollectBackFast(999.0,2.5,false,autonReset);
 				condition2 = AutonomousLoadFrisbees(true,false, 2.0);
 				if (condition2)
 				{
-					collector.Collect();
+					collector.Lower();
 				}
 				
 				if (condition1 && condition2)
