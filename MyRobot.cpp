@@ -572,7 +572,8 @@ public:
 			AutonSevenFrisbeeForward();
 			break;
 		case AUTONOMOUS_MODE_NINE_FRISBEE:
-			AutonNineFrisbee();
+			//AutonNineFrisbee();
+			AutonNineFrisbeeRational();
 			break;
 		case AUTONOMOUS_MODE_SEVEN_FRISBEE_BACK:
 			//AutonSevenFrisbeeBack();
@@ -715,7 +716,7 @@ public:
 		return false;
 	}
 	
-	bool AutonomousCollectBackReallyFast(float distance, float time, bool collector_enabled = true, bool reset = false)
+	bool AutonomousCollectBackReallyFast(float distance, float time, bool collector_enabled = true, bool reset = false, bool ramped_start = true)
 	{
 		if (reset == true)
 		{
@@ -732,10 +733,10 @@ public:
 			myRobot.Drive(0.0, 0.0);
 			return true;//Stop motors and return true
 		}
-		else if (autonDrivingBack.Get() > 0.25)
+		else if ((autonDrivingBack.Get() > 0.25) || (ramped_start == false))
 		{
 			//TODO use the encoder turn rate
-			myRobot.Drive(-(1.00 + autonSpeedCorrect), autonTurnAmount);//Set speed to 50% and collect
+			myRobot.Drive(-1.0, autonTurnAmount);//Set speed to 50% and collect
 			if (collector_enabled) collector.Collect();
 			return false;//Return false
 		}
@@ -749,7 +750,7 @@ public:
 		return false;
 	}
 	
-	bool AutonomousCollectForward(float distance, float time, bool collector_enabled = true, bool reset = false, bool stop_at_end = true)
+	bool AutonomousCollectForward(float distance, float time, bool collector_enabled = true, bool reset = false, bool stop_at_end = true, bool ramped_start = true)
 	{
 		if (reset == true)
 		{
@@ -773,7 +774,7 @@ public:
 			}
 			return true;//Stop motors and return true
 		}
-		else if (autonDrivingForward.Get() > 0.25)
+		else if ((autonDrivingForward.Get() > 0.25)  || (ramped_start == false))
 		{
 			myRobot.Drive(1.0, -autonTurnAmount);//Set speed to 50% and collect
 //			myRobot.TankDrive(0.9 - autonTurnAmount, 0.9 + autonTurnAmount);
@@ -1534,6 +1535,217 @@ public:
 			}
 					
 		}
+	
+	
+
+	
+	void AutonNineFrisbeeRational(void)
+		{
+			bool condition1, condition2;
+			frisbeeShooter.ShootFrisbee(false);//Service the shooter to retract the firing piston
+			switch (autonStepCount)
+			{
+			case 0:
+				//TODO determine rpm
+				frisbeeShooter.SetRpm(RPM_AUTONOMOUS_SHOTS);
+				if (frisbeeShooter.IsReady() == true)
+				{
+					autonReset = true;
+					autonStepCount++;
+				}
+				
+				break;
+			case 1: 	//Shoot 3 frisbees (3sec) and lower collector
+
+				//TODO condition1 = AutonomousDislodgeCollector(TIME_AUTONOMOUS_DISLODGE, autonReset); 
+				condition2 = AutonomousShoot(3,false,autonReset);
+				if (condition2)
+				{
+					autonReset = true;
+					autonStepCount++;
+				}
+				else
+				{
+					autonReset = false;
+				}
+				break;
+			case 2:
+				condition1 = AutonomousDislodgeCollector(TIME_AUTONOMOUS_DISLODGE, autonReset);
+				//not needed, will be down early enough (.65) sec 
+				//if (condition1)condition2 = collector.Lower();
+				if (condition1/* && condition2*/)
+				{
+					autonReset = true;
+					autonStepCount++;
+				}
+				else
+				{
+					autonReset = false;
+				}
+				break;
+			case 3: 		//Drive forward and collect
+				if (AutonomousCollectForward(999.0,1.25,true,autonReset,false)== true)
+				{
+					autonReset = true;
+					autonStepCount++;
+				}
+				else
+				{
+					autonReset = false;
+				}
+		
+				break;
+			case 4:	//Load frisbees
+				myRobot.Drive(0.40 + autonSpeedCorrect,-autonTurnAmount);
+				if (AutonomousLoadFrisbees(true,autonReset,1.5) )
+				{
+					if (AutonomousLowerCollector())
+					{
+						autonReset = true;
+						autonStepCount++;
+					}
+				}
+				else
+				{
+					autonReset = false;
+				}
+				break;
+			case 5:	//Drive forward and lower collector
+				if (AutonomousCollectForward(999.0,0.30,true,autonReset,true,false) == true)
+				{
+					autonReset = true;
+					autonStepCount++;
+				}
+				else
+				{
+					autonReset = false;
+				}
+				break;
+			case 6:	//Stop motor and begin loading
+				myRobot.Drive(0.0,0.0);
+				AutonomousLoadFrisbees(true,autonReset);
+				if (autonLoading.Get() > 0.15)
+				{
+					autonReset = true;
+					autonStepCount++;
+				}
+				else
+				{
+					autonReset = false;
+				}
+				break;
+			case 7:
+				//Load and Drive Backward without collecting
+				if (AutonomousLoadFrisbees(true,false, 1.5))
+				{
+					collector.Lower();
+				}
+				if (AutonomousCollectBackReallyFast(999.0,2.0,false,autonReset))
+				{
+					autonReset = true;
+					autonStepCount++;
+				}
+				else
+				{
+					autonReset = false;
+				}
+				break;
+			case 8:	//stop
+				if (autonReset)
+				{
+					autonDrivingForward.Reset();
+					autonDrivingForward.Start();
+				}
+				myRobot.Drive(0.0,0.0);
+				if (autonDrivingForward.Get() >=  0.2)
+				{
+					autonReset = true;
+					autonStepCount++;
+				}
+				else
+				{
+					autonReset = false;
+				}
+				break;
+			case 9:
+				//Shoot 4
+				if (AutonomousShoot(4,true,autonReset))
+				{
+					autonReset = true;
+					autonStepCount++;
+				}
+				else
+				{
+					autonReset = false;
+				}
+				break;
+			case 10:
+				if (AutonomousCollectBackReallyFast(999.0,1.25,true, autonReset,false))
+				{
+					autonReset = true;
+					autonStepCount++;
+				}
+				else
+				{
+					autonReset = false;
+				}
+				break;
+			case 11:	//Stop
+				if (autonReset)
+				{
+					autonDrivingForward.Reset();
+					autonDrivingForward.Start();
+				}
+				myRobot.Drive(0.0,0.0);
+				if (autonDrivingForward.Get() >=  0.2)
+				{
+					autonReset = true;
+					autonStepCount++;
+				}
+				else
+				{
+					autonReset = false;
+				}
+				break;
+			case 12:
+				condition1 = AutonomousLoadFrisbees(false, autonReset, 1.5);
+				condition2 = AutonomousCollectForward(999.0,1.25,false,autonReset,true,false);
+				if (condition1 && condition2)
+				{
+					autonReset = true;
+					autonStepCount++;
+				}
+				else
+				{
+					autonReset = false;
+				}
+				break;
+			case 13:
+				if (AutonomousShoot(2,false,autonReset))
+				{
+					autonReset = true;
+					autonStepCount++;
+				}
+				else
+				{
+					autonReset = false;
+				}
+				break;
+			case 14:
+				driverStationLCD->PrintfLine((DriverStationLCD::Line) 3, "Time: %f", timeInAutonomous.Get());
+				timeInAutonomous.Stop();
+				autonReset = true;
+				autonStepCount++;
+				break;
+			case 15:
+				autonReset = true;
+				break;
+					
+			}
+					
+		}	
+	
+
 	
 	
 	
