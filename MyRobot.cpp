@@ -1640,7 +1640,7 @@ public:
 				{
 					collector.Lower();
 				}
-				if (AutonomousCollectBackReallyFast(999.0,2.0,false,autonReset))
+				if (AutonomousCollectBackReallyFast(999.0,2.4,false,autonReset))
 				{
 					autonReset = true;
 					autonStepCount++;
@@ -1680,7 +1680,7 @@ public:
 				}
 				break;
 			case 10:
-				if (AutonomousCollectBackReallyFast(999.0,1.25,true, autonReset,false))
+				if (AutonomousCollectBackReallyFast(999.0,1.5,true, autonReset,false))
 				{
 					autonReset = true;
 					autonStepCount++;
@@ -1708,8 +1708,8 @@ public:
 				}
 				break;
 			case 12:
-				condition1 = AutonomousLoadFrisbees(false, autonReset, 1.5);
-				condition2 = AutonomousCollectForward(999.0,1.25,false,autonReset,true,false);
+				condition1 = AutonomousLoadFrisbees(false, autonReset, 1.75);
+				condition2 = AutonomousCollectForward(999.0,1.5,false,autonReset,true,false);
 				if (condition1 && condition2)
 				{
 					autonReset = true;
