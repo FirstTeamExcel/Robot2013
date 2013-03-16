@@ -11,6 +11,8 @@ Shooter::Shooter (int motor_channel,
 	numanumamaticRetract (numanumamatic_retract_channel),
 	shooterSemaphore()
 {
+	 numanumamaticExtend.Set(false);
+	 numanumamaticRetract.Set(true);
 	 wheel_counter = counter;
 	 max_power=1.0f;
 	 ramp_up_rate=1.0;
