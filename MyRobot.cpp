@@ -3,8 +3,11 @@
 #include "TargetCamera.h"
 #include "Collector.h"
 #include "Donuts"
+#include "customPIDs.h"
 //#include "math.h"
 
+//#define PID_DEBUG_MODE
+//#define PRACTICE_BOT
 /**
  * This is a demo program showing the use of the RobotBase class.
  * The SimpleRobot class is the base of a robot application that will automatically call your
@@ -20,11 +23,28 @@
 #define TIME_AUTONOMOUS_SPIN_UP 0.5
 #define POWER_AUTONOMOUS_SHOTS 0.56
 #define RPM_AUTONOMOUS_SHOTS 3850
+#define RPM_AUTONOMOUS_CORNER_SHOTS 3700
 #define RPM_TELEOP_SHOTS 4000
 #define RPM_FIVE_POINTER     2625
 
 #define AUTON_STRAIGHTEN() myRobot.TankDrive((autonTurnAmount * -4.0), (autonTurnAmount * 4.0))
 #define AUTON_SPEED_CORRECT_FACTOR 0.5
+
+
+//PID Parameters
+#define ROTATION_PID_PROPORTION 0.061584
+#define ROTATION_PID_INTEGRAL 0.0
+#define ROTATION_PID_DERIVATIVE 0.055718
+#define ROTATION_PID_SPEED_OFFSET 0.283465
+
+#define ROTATION_PID_MIN_INPUT -180.0
+#define ROTATION_PID_MAX_INPUT 180.0
+#define ROTATION_PID_MIN_OUTPUT -1.00
+#define ROTATION_PID_MAX_OUTPUT 1.00
+
+#define ROTATION_PID_TOLERENCE 0.50
+#define ROTATION_PID_SETPOINT_OFFSET 0.0 //negative adjusts to the right
+
 
 typedef enum
 {
@@ -34,6 +54,7 @@ typedef enum
     PWM_SHOOTER_WHEEL,
     PWM_BACK_COLLECTOR,
     PWM_FRONT_COLLECTOR,
+    PWM_6_SERVO_TEST
     
 }PWM_CHANNEL;
 typedef enum
@@ -114,7 +135,8 @@ typedef enum
 	AUTONOMOUS_MODE_SEVEN_FRISBEE_BACK,
 	AUTONOMOUS_MODE_NINE_FRISBEE,
 	AUTONOMOUS_MODE_FEED_FRISBEE,
-	AUTONOMOUS_MODE_SIT_AND_SHOOT
+	AUTONOMOUS_MODE_SIT_AND_SHOOT,
+	AUTONOMOUIS_MODE_FIVE_SHOT_CORNER
 }AUTONOMOUS_MODE_SELECT;
 
 AUTONOMOUS_MODE_SELECT autonomousMode;
@@ -143,6 +165,7 @@ class RobotDemo : public IterativeRobot
 
 	DriverStationLCD *driverStationLCD;
 //	Solenoid lightSensorPower;
+	Servo collectorServo;
 	Collector collector;
 	Compressor compressor;
 	//Climber climber;
@@ -156,11 +179,13 @@ class RobotDemo : public IterativeRobot
 	Timer autonShooting;
 	Encoder rightEncoder;
 	Encoder leftEncoder;
+	GyroControlledTurning rotationControl;
+	PIDController rotationPID;
 	int autonShotCount;
 	int autonStepCount;
 	float autonTurnAmount;
 	float autonSpeedCorrect;
-	bool autonReset;	
+	bool autonReset;
 
 public:
 	RobotDemo(void): //initialized
@@ -182,6 +207,7 @@ public:
 		leftBrake(DIGITAL_LEFT_BRAKE_OUT),
 		//targetCamera (),
 //		lightSensorPower(2),
+		collectorServo(PWM_6_SERVO_TEST),
 		collector(PWM_FRONT_COLLECTOR,
 		        PWM_BACK_COLLECTOR,
 		        SOLENOID_COLLECTOR_LIFTER_EXTEND,
@@ -199,14 +225,22 @@ public:
         autonLoading(),
         autonShooting(),
         rightEncoder(DIGITAL_WHEEL_RIGHT_FORWARD, DIGITAL_WHEEL_RIGHT_BACKWARD),
-        leftEncoder(DIGITAL_WHEEL_LEFT_FORWARD, DIGITAL_WHEEL_LEFT_BACKWARD)
-		
+        leftEncoder(DIGITAL_WHEEL_LEFT_FORWARD, DIGITAL_WHEEL_LEFT_BACKWARD),
+		rotationControl(&myRobot),
+		rotationPID(ROTATION_PID_PROPORTION, ROTATION_PID_INTEGRAL, ROTATION_PID_DERIVATIVE, &gyro, &rotationControl)
 		
 	{
 		// Acquire the Driver Station object
 		driverStation = DriverStation::GetInstance();
 		driverStationLCD = DriverStationLCD::GetInstance();
+		
 		myRobot.SetExpiration(0.1);
+
+		rotationPID.SetInputRange(ROTATION_PID_MIN_INPUT,ROTATION_PID_MAX_INPUT);
+		rotationPID.SetOutputRange(ROTATION_PID_MIN_OUTPUT,ROTATION_PID_MAX_OUTPUT);
+		rotationPID.SetAbsoluteTolerance(ROTATION_PID_TOLERENCE);
+		rotationControl.SetOffset(ROTATION_PID_SPEED_OFFSET);
+		rotationPID.Disable();
 		
 		autonReset = true;
 	}
@@ -218,7 +252,9 @@ public:
 		leftBrake.Set(true);
 		rightBrake.Set(true);
 		autonomousMode = AUTONOMOUS_MODE_SEVEN_FRISBEE_FORWARD;
+//        autonomousMode = AUTONOMOUS_MODE_NINE_FRISBEE;
 		compressor.Start();
+		rotationPID.Disable();
 	}
 	
 	void TeleopInit (void)
@@ -257,20 +293,78 @@ public:
 		gyro.Reset();
 		leftBrake.Set(false);
 		rightBrake.Set(false);
+		
+        rotationPID.SetInputRange(ROTATION_PID_MIN_INPUT,ROTATION_PID_MAX_INPUT);
+        rotationPID.SetOutputRange(ROTATION_PID_MIN_OUTPUT,ROTATION_PID_MAX_OUTPUT);
+        rotationPID.SetAbsoluteTolerance(ROTATION_PID_TOLERENCE);
+        rotationPID.Disable();
 	}
 
+	
 	void TeleopPeriodic (void)
 	{
+#ifdef PID_DEBUG_MODE
+        driverStationLCD->PrintfLine((DriverStationLCD::Line) 0, "angle: %f", gyro.GetAngle());   
+	    if (driverStation->GetDigitalIn(1))
+	    {
+            static float angle = 0.0;
+            static float p = 0.0;
+            static float i = 0.0;
+            static float d = 0.0;
+            static float tol = 0.0;
+            static float offset = 0.0;
+            static bool reset = true;
+            
+            collectorServo.SetAngle(operatorStick.GetThrottle());
+                
+            if (operatorStick.GetTrigger())
+            {
+                if (reset)
+                {
+                    gyro.Reset();
+                    rotationPID.SetPID(p,i,d);
+                    rotationPID.SetAbsoluteTolerance(tol);
+                    rotationControl.SetOffset(offset);
+                    rotationPID.SetSetpoint(angle);
+                    rotationPID.Enable();
+                }
+                //AutonomousTurnToAngle(angle,reset);
+                reset = false;
+            }
+            else
+            {
+                
+                rotationPID.Disable();
+                
+                angle = 90.0f;
+                p = driverStation->GetAnalogIn(1)/5.0;
+                i = driverStation->GetAnalogIn(2)/5.0;
+                d = driverStation->GetAnalogIn(3)/5.0;
+                tol = driverStation->GetAnalogIn(4);
+                offset = ((1-operatorStick.GetThrottle())/2);
+                
+                reset = true;
+        
+                driverStationLCD->PrintfLine((DriverStationLCD::Line) 1, "p: %f", p);
+                driverStationLCD->PrintfLine((DriverStationLCD::Line) 2, "i: %f", i);
+                driverStationLCD->PrintfLine((DriverStationLCD::Line) 3, "d: %f", d);   
+                driverStationLCD->PrintfLine((DriverStationLCD::Line) 4, "tol: %f", tol);
+                driverStationLCD->PrintfLine((DriverStationLCD::Line) 5, "spd offset: %f", offset);
+            }
+            driverStationLCD->UpdateLCD();
+            return;
+	    }
+#endif //PID_DEBUG_MODE
 		static bool stinger_toggled = false;
 		static bool climber_toggled = false;
 	    compressor.Start();
 		//targetCamera.SetDebugMode(operatorStick.GetRawButton(9));
-	    float shot_power = 0;
 	    float rpm = frisbeeShooter.GetRpm();
 		static bool previous_shoot_state = false;
 	//Test code
 	    float shot_rpm = 0.0;
 
+        
 	    if ((operatorStick.GetRawButton(1)==true)||(leftStick.GetRawButton(1)==true))
 		{
 			if (operatorStick.GetRawButton(10)==true)
@@ -290,8 +384,7 @@ public:
 	    frisbeeShooter.SetRpm(shot_rpm);
 	    driverStationLCD->PrintfLine((DriverStationLCD::Line) 0, "Power: %f", frisbeeShooter.GetPower());	
 	    driverStationLCD->PrintfLine((DriverStationLCD::Line) 1, "Rpm: %f %d", rpm, shooterSensor.Get());
-	    driverStationLCD->PrintfLine((DriverStationLCD::Line) 2, "TRpm: %f", shot_rpm);			
-		
+	    driverStationLCD->PrintfLine((DriverStationLCD::Line) 2, "TRpm: %f", shot_rpm);	
 		//Collector
 		if ((operatorStick.GetRawButton(2)==true )||(leftStick.GetRawButton(2)==true))
 		{   
@@ -482,8 +575,11 @@ public:
 				autonomousMode = AUTONOMOUS_MODE_NINE_FRISBEE;
 				break;
 			case AUTONOMOUS_MODE_NINE_FRISBEE:
-				autonomousMode = AUTONOMOUS_MODE_SEVEN_FRISBEE_FORWARD;
+				autonomousMode = AUTONOMOUIS_MODE_FIVE_SHOT_CORNER;
 				break;
+			case AUTONOMOUIS_MODE_FIVE_SHOT_CORNER:
+                autonomousMode = AUTONOMOUS_MODE_SEVEN_FRISBEE_FORWARD;
+			    break;
 				
 //			case AUTONOMOUS_MODE_FIVE_FRISBEE_BACK:
 //				autonomousMode = AUTONOMOUS_MODE_FIVE_FRISBEE_FORWARD;
@@ -540,6 +636,9 @@ public:
 		case AUTONOMOUS_MODE_NINE_FRISBEE:
 			driverStationLCD->PrintfLine((DriverStationLCD::Line) 1, "SHOOT ... 9!");
 			break;
+		case AUTONOMOUIS_MODE_FIVE_SHOT_CORNER:
+            driverStationLCD->PrintfLine((DriverStationLCD::Line) 1, "Corner 5!");
+            break;
 		}
 
 		driverStationLCD->UpdateLCD();
@@ -578,6 +677,10 @@ public:
 		case AUTONOMOUS_MODE_SEVEN_FRISBEE_BACK:
 			//AutonSevenFrisbeeBack();
 			break;
+
+        case AUTONOMOUIS_MODE_FIVE_SHOT_CORNER:
+            AutonFiveShotCorner();
+            break;
 		default:
 		case AUTONOMOUS_MODE_FEED_FRISBEE:
 			break;
@@ -608,6 +711,9 @@ public:
 	
 	bool AutonomousShoot(int quantity, bool use_sensor, bool reset = false, float delay_time = 0.0)
 	{
+#ifdef PRACTICE_BOT
+	    return true;
+#endif
 		bool fast_shooting = false;
 		if (autonomousMode == AUTONOMOUS_MODE_NINE_FRISBEE)
 		{
@@ -855,6 +961,37 @@ public:
 		{
 			collector.LeaveStartingPosition();
 			myRobot.Drive(0.30,0.0);
+		}
+		return false;
+	}
+	/**
+	 * Note: the angle from the gyro accumulates the directional change positive or negative, and doesn't roll over
+	 * the angle provided needs to take that into consideration (i.e. don't say 270 degrees if you want to rotate -90)
+	 */
+	bool AutonomousTurnToAngle(float turnedAngle, bool reset)
+	{
+	    static Timer onTargetTime;
+		if (reset == true)
+		{
+			rotationPID.SetSetpoint(turnedAngle);
+			rotationPID.Enable();
+			
+			onTargetTime.Reset();
+		}
+		
+		if (rotationPID.OnTarget())
+		{
+		    onTargetTime.Start();
+		}
+		else
+		{
+		    onTargetTime.Reset();
+		}
+		
+		if (onTargetTime.Get() > 0.5)
+		{
+			rotationPID.Disable();
+			return true;
 		}
 		return false;
 	}
@@ -1657,7 +1794,7 @@ public:
 				}
 				break;
 			case 3: 		//Drive forward and collect
-				if (AutonomousCollectForward(999.0,0.4,true,autonReset,false)== true)
+				if (AutonomousCollectForward(999.0,0.6,true,autonReset,false)== true)
 				{
 					autonReset = true;
 					autonStepCount++;
@@ -1684,7 +1821,7 @@ public:
 				}
 				break;
 			case 5:	//Drive forward and lower collector
-				if (AutonomousCollectForward(999.0,0.30,true,autonReset,true,false) == true)
+				if (AutonomousCollectForward(999.0,0.60,true,autonReset,true,false) == true)
 				{
 					autonReset = true;
 					autonStepCount++;
@@ -1821,8 +1958,173 @@ public:
 
 	
 	
-	
-	
+	void AutonFiveShotCorner(void)
+    {
+        bool condition1, condition2;
+        frisbeeShooter.ShootFrisbee(false);//Service the shooter to retract the firing piston
+        switch (autonStepCount)
+        {
+        case 0:
+            frisbeeShooter.SetRpm(RPM_AUTONOMOUS_CORNER_SHOTS);
+            if (autonReset)
+            {
+                autonDrivingForward.Reset();
+                autonDrivingForward.Start();
+            }
+            myRobot.Drive(0.0,0.0);
+            if (autonDrivingForward.Get() >=  0.2)
+            {
+                autonReset = true;
+                autonStepCount++;
+            }
+            else
+            {
+                autonReset = false;
+            }
+            break;
+        case 1:     //Shoot 3 frisbees (3sec) and lower collector
+
+            //condition1 = AutonomousDislodgeCollector(TIME_AUTONOMOUS_DISLODGE, autonReset); 
+            condition2 = AutonomousShoot(3,false,autonReset);
+            if (condition2)
+            {
+                autonReset = true;
+                autonStepCount++;
+            }
+            else
+            {
+                autonReset = false;
+            }
+            break;
+        case 2:
+            condition1 = AutonomousDislodgeCollector(TIME_AUTONOMOUS_DISLODGE, autonReset); 
+            condition2 = AutonomousLowerCollector();
+            if (condition1 && condition2)
+            {
+                autonReset = true;
+                autonStepCount++;
+            }
+            else
+            {
+                autonReset = false;
+            }
+            break;
+        case 3:         //Drive back and stop
+            AutonomousLowerCollector();
+            if (AutonomousCollectBackReallyFast(999.0,1.5,false,autonReset)== true)
+            {
+                autonReset = true;
+                autonStepCount++;
+            }
+            else
+            {
+                autonReset = false;
+            }
+    
+            break;
+        case 4: //Load frisbees
+            if (AutonomousTurnToAngle(90,autonReset) )
+            {
+                autonReset = true;
+                autonStepCount++;
+            }
+            else
+            {
+                autonReset = false;
+            }
+            break;
+        case 5: //Drive forward and lower collector
+            if (AutonomousCollectForward(999.0,1.0,true,autonReset) == true)
+            {
+                autonReset = true;
+                autonStepCount++;
+            }
+            else
+            {
+                autonReset = false;
+            }
+            break;
+        case 6: //Stop motor and begin loading
+            myRobot.Drive(0.0,0.0);
+            AutonomousLoadFrisbees(true,autonReset);
+            if (autonLoading.Get() > 1.5)
+            {
+                autonReset = true;
+                autonStepCount++;
+            }
+            else
+            {
+                autonReset = false;
+            }
+            break;
+        case 7:
+            //Load and Drive Backward without collecting
+            condition1 = AutonomousCollectBackFast(999.0,1.5,false,autonReset);
+            condition2 = AutonomousLoadFrisbees(true,false, 2.0);
+            if (condition2)
+            {
+                collector.Lower();
+            }
+            
+            if (condition1 && condition2)
+            {
+                autonReset = true;
+                autonStepCount++;
+            }
+            else
+            {
+                autonReset = false;
+            }
+            break;
+        case 8:
+            if (AutonomousTurnToAngle(0,autonReset) )
+            {
+                autonReset = true;
+                autonStepCount++;
+            }
+            else
+            {
+                autonReset = false;
+            }
+            break;
+        case 9:
+            if (AutonomousCollectForward(999.0,1.0,true,autonReset) == true)
+            {
+                autonReset = true;
+                autonStepCount++;
+            }
+            else
+            {
+                autonReset = false;
+            }
+            break;
+        case 10:
+            //Shoot 4 frisbees (4 seconds)
+            if (AutonomousShoot(8,true,autonReset))
+            {
+                autonReset = true;
+                autonStepCount++;
+            }
+            else
+            {
+                autonReset = false;
+            }
+            break;
+        case 11:
+
+            driverStationLCD->PrintfLine((DriverStationLCD::Line) 3, "Time: %f", timeInAutonomous.Get());
+            timeInAutonomous.Stop();
+            autonReset = true;
+            autonStepCount++;
+            break;
+        case 12:
+            autonReset = true;
+            break;
+                
+        }
+                
+    }
+
 
 };
 
