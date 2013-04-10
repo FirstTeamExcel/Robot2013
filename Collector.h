@@ -3,6 +3,7 @@
 #ifndef COLLECTOR_H_
 #define COLLECTOR_H_
 
+
 class Collector
 {
 public:
@@ -20,6 +21,7 @@ private: //Keep out Connor!!!
     Solenoid tilterRetract;
     Solenoid extraLifterExtend;
     Solenoid extraLifterRetract;
+    ADXL345_I2C accelerometer;
     Timer timeTraveling;
     
     
