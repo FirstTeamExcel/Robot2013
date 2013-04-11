@@ -1,15 +1,15 @@
 # include "Collector.h"
 
-#define TIME_TO_TRAVEL_UP 0.9
+#define TIME_TO_TRAVEL_UP 0.95
 #define TIME_TO_TRAVEL_DOWN 0.65
-#define TIME_TO_LEAVE_STARTING_POSITION 1.5
-#define TIME_TO_DELAY_TILTER 0.15
-#define SPECIAL_BACK_ROLLER_LOADING_SPEED 0.70
+#define TIME_TO_LEAVE_STARTING_POSITION 0.5
+#define TIME_TO_DELAY_TILTER 0.085
+#define SPECIAL_BACK_ROLLER_LOADING_SPEED 1.00
 
 #define DISABLE_ACCELEROMETER
 #define ACCELEROMETER_SWING_LIMIT 0.75f
 #define ACCELEROMETER_LOADING_CORRECTION_FACTOR 0.3f
-
+    
 Collector::Collector (int front_collector_channel,
         int back_collector_channel,
         int lifter_extend_channel,
@@ -27,10 +27,12 @@ Collector::Collector (int front_collector_channel,
             accelerometer(1)
 {
     position = DOWN;
-    loadSpeed=0.40;
+    loadSpeed=0.38;
     feedSpeed=1.0;
     collectSpeed=0.6;
     timeTraveling.Stop();
+    ds = DriverStation::GetInstance();
+    
 }
 
 void Collector::Feed(bool feed_forward)
@@ -88,6 +90,10 @@ void Collector::Load(void)
        {
        case UP:
 #ifdef DISABLE_ACCELEROMETER
+           
+//           frontCollector.Set(-(ds->GetAnalogIn(1)));
+//           backCollector.Set(-(ds->GetAnalogIn(2)));
+
            frontCollector.Set(-loadSpeed);
            backCollector.Set(-SPECIAL_BACK_ROLLER_LOADING_SPEED);
 #else
@@ -129,28 +135,7 @@ void Collector::Load(void)
            timeTraveling.Start ();
            break;
        case TRAVELING_UP:
-    	   if (backCollector.Get() == 0.5)
-    	   {
-    		   backCollector.Set(0.51);
-    	   }
-    	   else
-    	   {
-			   backCollector.Set(0);
-    	   }
-		   frontCollector.Set(0);
-           if (timeTraveling.Get() >= TIME_TO_DELAY_TILTER)
-           {
-        	   if (tilterExtend.Get() == false)
-        	   {
-        		   backCollector.Set(.8);
-        	   }
-               tilterExtend.Set(true);
-               tilterRetract.Set(false);
-           }
-           if (timeTraveling.Get()>= TIME_TO_TRAVEL_UP)
-           {
-               position = UP;
-           }
+           TravelingUp();
            break;
        case STARTING_POSITION:
            frontCollector.Set(0);
@@ -221,19 +206,7 @@ void Collector::Idle(void)
        case DOWN:
            break;
        case TRAVELING_UP:
-           if (timeTraveling.Get() >= TIME_TO_DELAY_TILTER)
-           {
-        	   if (tilterExtend.Get() == false)
-        	   {
-        		   backCollector.Set(.8);
-        	   }
-               tilterExtend.Set(true);
-               tilterRetract.Set(false);
-           }
-           if (timeTraveling.Get()>= TIME_TO_TRAVEL_UP)
-           {
-               position = UP;
-           }
+           TravelingUp();
            break;
        case TRAVELING_DOWN:
            if (timeTraveling.Get()>= TIME_TO_TRAVEL_DOWN)
@@ -323,6 +296,31 @@ bool Collector::Raise(void)
     return retVal;
 }
 
+void Collector::TravelingUp(void)
+{
+    if (backCollector.Get() == 0.99)
+    {
+        backCollector.Set(0.51);
+    }
+    else
+    {
+        backCollector.Set(0);
+    }
+    frontCollector.Set(0);
+    if (timeTraveling.Get() >= TIME_TO_DELAY_TILTER)
+    {
+        if (tilterExtend.Get() == false)
+        {
+            backCollector.Set(.99);
+        }
+        tilterExtend.Set(true);
+        tilterRetract.Set(false);
+    }
+    if (timeTraveling.Get()>= TIME_TO_TRAVEL_UP)
+    {
+        position = UP;
+    }
+}
 bool Collector::Lower(void)
 {
     bool retVal = false;

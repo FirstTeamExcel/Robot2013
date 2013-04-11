@@ -22,9 +22,10 @@ private: //Keep out Connor!!!
     Solenoid extraLifterExtend;
     Solenoid extraLifterRetract;
     ADXL345_I2C accelerometer;
+    DriverStation *ds;
     Timer timeTraveling;
     
-    
+    void TravelingUp(void);
 public:
     Collector (int front_collector_channel,
             int back_collector_channel,
