@@ -46,6 +46,7 @@ public: //shooter functions
 	float GetRpm (void);
 	bool ShootFrisbee (bool fire, bool really_fast = false);
 	void Run(void);
+	bool DeliberatelySlowPowerBasedFrisbeeShootingTest(void);
 };
 
 

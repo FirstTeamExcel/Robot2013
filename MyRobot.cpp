@@ -22,7 +22,9 @@
 #define TIME_AUTONOMOUS_DISLODGE 0.3
 #define TIME_AUTONOMOUS_SPIN_UP 0.5
 #define POWER_AUTONOMOUS_SHOTS 0.56
-#define RPM_AUTONOMOUS_SHOTS 3850
+#define RPM_AUTONOMOUS_FIRST_SHOTS 3790
+#define RPM_AUTONOMOUS_LAST_SHOT 3780
+#define RPM_AUTONOMOUS_LAST_FOUR 3815
 #define RPM_AUTONOMOUS_CORNER_SHOTS 3600
 #define RPM_TELEOP_SHOTS 4000
 #define RPM_LAST_TELEOP_SHOT 3950
@@ -358,7 +360,13 @@ public:
             return;
 	    }
 #endif //PID_DEBUG_MODE
-		static bool stinger_toggled = false;
+//		if (driverStation->GetDigitalIn(2) == false)
+//		{
+//		    frisbeeShooter.DeliberatelySlowPowerBasedFrisbeeShootingTest();
+//		    return;
+//		}
+	    
+	    static bool stinger_toggled = false;
 		static bool climber_toggled = false;
 	    compressor.Start();
 		//targetCamera.SetDebugMode(operatorStick.GetRawButton(9));
@@ -673,6 +681,25 @@ public:
 		
 	void AutonomousPeriodic (void)
 	{
+	    static Timer gyro_off_target_timer;
+	    float gyro_angle = gyro.GetAngle();
+        driverStationLCD->PrintfLine((DriverStationLCD::Line) 4, "angle:%f", gyro_angle);
+	    if ((gyro_angle > 90.0) || (gyro_angle < -90.0) || (gyro_off_target_timer.Get() > 1.0))
+	    {
+	        myRobot.Drive(0.0,0.0);
+	        driverStationLCD->UpdateLCD();
+	        if (autonStepCount >= 2)        
+	            return; 
+	    }
+	    else if ((gyro_angle > 30.0) || (gyro_angle < -30.0))
+	    {
+	        gyro_off_target_timer.Start();
+	    }
+	    else
+	    {
+	        gyro_off_target_timer.Reset();
+	    }
+	    
 		timeInAutonomous.Start();
 		switch (autonomousMode)
 		{
@@ -713,31 +740,25 @@ public:
 		case AUTONOMOUS_MODE_FEED_FRISBEE:
 			break;
 		}
-//		if (frisbeeShooter.GetPower() != 0.0)
-//		{
-//			compressor.Stop();
-//		}
-//		else
-//		{
-//			compressor.Start();
-//		}
 		//myRobot.Drive(forwardSpeed, curve); curve less than 0 turns left, curve greater than zero turns right
-		autonTurnAmount = gyro.GetAngle() / 100;
+		
+		
+		
+		
+		
+		autonTurnAmount = gyro_angle / 100.0f;
 		if (autonTurnAmount > 0.1) autonTurnAmount = 0.1;
 		if (autonTurnAmount < -0.1) autonTurnAmount = -0.1;
-		
-		//autonSpeedCorrect = fabsf(autonTurnAmount) * AUTON_SPEED_CORRECT_FACTOR;
 		
 		autonSpeedCorrect = (autonTurnAmount) * AUTON_SPEED_CORRECT_FACTOR;
 		if (autonSpeedCorrect < 0.0) autonSpeedCorrect = autonSpeedCorrect * -1.0;
 		
 		driverStationLCD->PrintfLine((DriverStationLCD::Line) 2, "Auton Step: %d", autonStepCount);
-		driverStationLCD->PrintfLine((DriverStationLCD::Line) 4, "L:%d, R:%d T:%f", leftEncoder.Get(), rightEncoder.Get(), autonTurnAmount);
 		driverStationLCD->UpdateLCD();
 		
 	}
 	
-	bool AutonomousShoot(int quantity, bool delay_after, bool reset = false, float delay_time = 0.0)
+	bool AutonomousShoot(int quantity, bool delay_after, bool reset = false, float delay_time = 0.0, float last_shot_rpm = 0.0)
 	{
 #ifdef PRACTICE_BOT
 	    return true;
@@ -765,6 +786,10 @@ public:
 					autonShotCount ++;
 					autonShooting.Reset();
 					autonShooting.Start();
+					if ((autonShotCount == (quantity - 1)) && (last_shot_rpm != 0.0))
+					{
+					    frisbeeShooter.SetRpm(last_shot_rpm);
+					}
 				}
 			}
 			return false;
@@ -1144,7 +1169,7 @@ public:
 		{
 
 		case 0: 	//Shoot 3 frisbees (3sec) and lower collector
-			frisbeeShooter.SetRpm(RPM_AUTONOMOUS_SHOTS);
+			frisbeeShooter.SetRpm(RPM_AUTONOMOUS_FIRST_SHOTS);
 			if (autonReset)
 			{
 				autonDrivingForward.Reset();
@@ -1276,7 +1301,7 @@ public:
 			switch (autonStepCount)
 			{
 			case 0:
-				frisbeeShooter.SetRpm(RPM_AUTONOMOUS_SHOTS);
+				frisbeeShooter.SetRpm(RPM_AUTONOMOUS_FIRST_SHOTS);
 				if (autonReset)
 				{
 					autonDrivingForward.Reset();
@@ -1295,8 +1320,8 @@ public:
 				break;
 			case 1: 	//Shoot 3 frisbees (3sec) and lower collector
 
-				//condition1 = AutonomousDislodgeCollector(TIME_AUTONOMOUS_DISLODGE, autonReset); 
-				condition2 = AutonomousShoot(3,true,autonReset);
+			    condition2 = AutonomousShoot(3,true,autonReset);
+				//condition2 = AutonomousShoot(3,true,autonReset,0.0, RPM_AUTONOMOUS_LAST_SHOT);
 				if (condition2)
 				{
 					autonReset = true;
@@ -1308,6 +1333,8 @@ public:
 				}
 				break;
 			case 2:
+
+                //frisbeeShooter.SetRpm(RPM_AUTONOMOUS_FIRST_SHOTS);
 				condition1 = AutonomousDislodgeCollector(TIME_AUTONOMOUS_DISLODGE, autonReset); 
 				condition2 = AutonomousLowerCollector();
 				if (condition1 && condition2)
@@ -1321,6 +1348,7 @@ public:
 				}
 				break;
 			case 3: 		//Drive forward and collect
+			    frisbeeShooter.SetRpm(RPM_AUTONOMOUS_LAST_FOUR);
 				if (AutonomousCollectForward(999.0,1.0,true,autonReset)== true)
 				{
 					autonReset = true;
@@ -1407,26 +1435,38 @@ public:
 					autonReset = false;
 				}
 				break;
-			case 9:
-				//Shoot 4 frisbees (4 seconds)
-				if (AutonomousShoot(8,false,autonReset))
-				{
-					autonReset = true;
-					autonStepCount++;
-				}
-				else
-				{
-					autonReset = false;
-				}
-				break;
-			case 10:
+            case 9:
+                //Shoot 4 frisbees (4 seconds)
+                if (AutonomousShoot(4,false,autonReset,0.0,RPM_AUTONOMOUS_LAST_SHOT))
+                {
+                    autonReset = true;
+                    autonStepCount++;
+                }
+                else
+                {
+                    autonReset = false;
+                }
+                break;
+            case 10:
+                //Shoot 4 frisbees (4 seconds)
+                if (AutonomousShoot(4,false,autonReset, 0.6))
+                {
+                    autonReset = true;
+                    autonStepCount++;
+                }
+                else
+                {
+                    autonReset = false;
+                }
+                break;
+			case 11:
 
 				driverStationLCD->PrintfLine((DriverStationLCD::Line) 3, "Time: %f", timeInAutonomous.Get());
 				timeInAutonomous.Stop();
 				autonReset = true;
 				autonStepCount++;
 				break;
-			case 11:
+			case 12:
 				autonReset = true;
 				break;
 					
@@ -1637,7 +1677,7 @@ public:
 			switch (autonStepCount)
 			{
 			case 0:
-				frisbeeShooter.SetRpm(RPM_AUTONOMOUS_SHOTS);
+				frisbeeShooter.SetRpm(RPM_AUTONOMOUS_FIRST_SHOTS);
 				if (autonReset)
 				{
 					autonDrivingForward.Reset();

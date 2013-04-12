@@ -1,6 +1,8 @@
 #include "Shooter.h"
 
 #define POWER_DURING_SHOT 0.50
+#define TAKE_BACK_TIME 0.4
+#define SPEED_TOLERANCE 0.005
 
 Shooter::Shooter (int motor_channel, 
 		Counter *counter,
@@ -53,8 +55,8 @@ void Shooter::SetRpm (float rpm)
 	else
 	{
 		target_sec_per_revolution = ((double)60.0) / ((double)rpm);
-		target_sec_per_revolution_slowdown = target_sec_per_revolution * 1.01;
-		target_sec_per_revolution_overshoot = target_sec_per_revolution * 0.99;
+		target_sec_per_revolution_slowdown = target_sec_per_revolution * (1.0 + SPEED_TOLERANCE);
+		target_sec_per_revolution_overshoot = target_sec_per_revolution * (1.0 - SPEED_TOLERANCE);
 	}
 	
 	//if the speed control task isn't running, start it.
@@ -188,6 +190,7 @@ bool Shooter::ShootFrisbee (bool fire, bool really_fast)
 {
 	bool retValue = false;
 	float travel_time = 0.5;
+	static Timer take_back_timer;
 	if (speedControl == true)
 	{
 		travel_time = 0.3;
@@ -203,6 +206,9 @@ bool Shooter::ShootFrisbee (bool fire, bool really_fast)
 				wheel_motor.Set(POWER_DURING_SHOT);
 				last_motor_command = POWER_DURING_SHOT;
 				shooterSemaphore.give();
+                take_back_timer.Reset();
+                take_back_timer.Start();
+                upToSpeed = false;
 				numanumamaticExtend.Set(true);
 				numanumamaticRetract.Set(false);
 				timeTraveling.Reset();
@@ -217,10 +223,6 @@ bool Shooter::ShootFrisbee (bool fire, bool really_fast)
 				timeTraveling.Reset();
 				timeTraveling.Start();
 
-				shooterSemaphore.take();
-				upToSpeed = false;
-				Start();
-				shooterSemaphore.give();
 				numanumamaticExtend.Set(false);
 				numanumamaticRetract.Set(true);
 				state = READY;
@@ -228,5 +230,49 @@ bool Shooter::ShootFrisbee (bool fire, bool really_fast)
 			break;
 			
 	}
+	if (take_back_timer.Get() >= TAKE_BACK_TIME)
+	{
+        shooterSemaphore.take();
+        Start();
+        shooterSemaphore.give();
+        
+	    take_back_timer.Stop();
+	    take_back_timer.Reset();
+	}
 	return retValue;
 }
+
+
+bool Shooter::DeliberatelySlowPowerBasedFrisbeeShootingTest (void)
+{
+    static bool shot_fired = true;
+    static Timer time;
+    
+    bool ret_value = false;
+    time.Start();
+    wheel_motor.Set(0.5);
+    if (shot_fired)
+    {
+        if (time.Get() >= 6.0)
+        {
+            time.Reset();
+            numanumamaticExtend.Set(false);
+            numanumamaticRetract.Set(true);
+            shot_fired = false;
+        }
+    }
+    else
+    {
+        if (time.Get() >= 6.0)
+        {
+            time.Reset();
+            numanumamaticExtend.Set(true);
+            numanumamaticRetract.Set(false);
+            shot_fired = true;
+            ret_value = true;
+        } 
+    }
+    
+    return ret_value;
+}
+
