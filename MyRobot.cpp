@@ -137,7 +137,8 @@ typedef enum
 	AUTONOMOUS_MODE_NINE_FRISBEE,
 	AUTONOMOUS_MODE_FEED_FRISBEE,
 	AUTONOMOUS_MODE_SIT_AND_SHOOT,
-	AUTONOMOUIS_MODE_FIVE_SHOT_CORNER
+	AUTONOMOUS_MODE_FIVE_SHOT_CORNER,
+	AUTONOMOUS_MODE_TESTING
 }AUTONOMOUS_MODE_SELECT;
 
 AUTONOMOUS_MODE_SELECT autonomousMode;
@@ -593,10 +594,13 @@ public:
 				autonomousMode = AUTONOMOUS_MODE_NINE_FRISBEE;
 				break;
 			case AUTONOMOUS_MODE_NINE_FRISBEE:
-				autonomousMode = AUTONOMOUIS_MODE_FIVE_SHOT_CORNER;
-				break;
-			case AUTONOMOUIS_MODE_FIVE_SHOT_CORNER:
-                autonomousMode = AUTONOMOUS_MODE_SEVEN_FRISBEE_FORWARD;
+//				autonomousMode = AUTONOMOUS_MODE_FIVE_SHOT_CORNER;
+//				break;
+//			case AUTONOMOUS_MODE_FIVE_SHOT_CORNER:
+                autonomousMode = AUTONOMOUS_MODE_TESTING;
+			    break;
+			case AUTONOMOUS_MODE_TESTING:
+			    autonomousMode = AUTONOMOUS_MODE_SEVEN_FRISBEE_FORWARD;
 			    break;
 				
 //			case AUTONOMOUS_MODE_FIVE_FRISBEE_BACK:
@@ -654,8 +658,11 @@ public:
 		case AUTONOMOUS_MODE_NINE_FRISBEE:
 			driverStationLCD->PrintfLine((DriverStationLCD::Line) 1, "SHOOT ... 9!");
 			break;
-		case AUTONOMOUIS_MODE_FIVE_SHOT_CORNER:
+        case AUTONOMOUS_MODE_FIVE_SHOT_CORNER:
             driverStationLCD->PrintfLine((DriverStationLCD::Line) 1, "Corner 5!");
+            break;
+        case AUTONOMOUS_MODE_TESTING:
+            driverStationLCD->PrintfLine((DriverStationLCD::Line) 1, "Testing routine");
             break;
 		}
 
@@ -696,8 +703,11 @@ public:
 			//AutonSevenFrisbeeBack();
 			break;
 
-        case AUTONOMOUIS_MODE_FIVE_SHOT_CORNER:
+        case AUTONOMOUS_MODE_FIVE_SHOT_CORNER:
             AutonFiveShotCorner();
+            break;
+        case AUTONOMOUS_MODE_TESTING:
+            AutonSevenFrisbeeFast();
             break;
 		default:
 		case AUTONOMOUS_MODE_FEED_FRISBEE:
@@ -733,7 +743,8 @@ public:
 	    return true;
 #endif
 		bool fast_shooting = false;
-		if (autonomousMode == AUTONOMOUS_MODE_NINE_FRISBEE)
+		if ((autonomousMode == AUTONOMOUS_MODE_NINE_FRISBEE) || 
+            (autonomousMode == AUTONOMOUS_MODE_TESTING))
 		{
 			fast_shooting = true;
 		}
@@ -1592,7 +1603,33 @@ public:
                 
     }
 	
-	
+	void AutonSevenFrisbeeFast(void)
+	{
+	    switch (autonStepCount)
+        {
+        case 0:
+        case 1:
+        case 2:
+        case 3:
+        case 4:
+        case 5:
+        case 6:
+        case 7:
+        case 8:
+        case 9:
+            AutonNineFrisbee();
+            break;
+        case 10:
+            driverStationLCD->PrintfLine((DriverStationLCD::Line) 3, "Time: %f", timeInAutonomous.Get());
+            timeInAutonomous.Stop();
+            autonReset = true;
+            autonStepCount++;
+            break;
+        default:
+        case 11:
+            break;
+        }
+	}
 	void AutonNineFrisbee(void)
 		{
 			bool condition1, condition2;

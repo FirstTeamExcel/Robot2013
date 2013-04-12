@@ -190,7 +190,7 @@ bool Shooter::ShootFrisbee (bool fire, bool really_fast)
 	float travel_time = 0.5;
 	if (speedControl == true)
 	{
-		travel_time = 0.25;
+		travel_time = 0.3;
 		if (really_fast == true)travel_time = 0.2;
 	}
 	
