@@ -298,9 +298,9 @@ bool Collector::Raise(void)
 
 void Collector::TravelingUp(void)
 {
-    if (backCollector.Get() == 0.99)
+    if (backCollector.Get() == 0.85)
     {
-        backCollector.Set(0.51);
+        backCollector.Set(0.41);
     }
     else
     {
@@ -311,7 +311,7 @@ void Collector::TravelingUp(void)
     {
         if (tilterExtend.Get() == false)
         {
-            backCollector.Set(.99);
+            backCollector.Set(.85);
         }
         tilterExtend.Set(true);
         tilterRetract.Set(false);
