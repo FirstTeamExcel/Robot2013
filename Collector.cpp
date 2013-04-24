@@ -81,7 +81,7 @@ void Collector::Feed(bool feed_forward)
     }
 }
 
-void Collector::Load(void)
+void Collector::Load(float temp_load_speed)
 {
     float accel_correction;
     float swinging_force;
@@ -93,8 +93,14 @@ void Collector::Load(void)
            
 //           frontCollector.Set(-(ds->GetAnalogIn(1)));
 //           backCollector.Set(-(ds->GetAnalogIn(2)));
-
-           frontCollector.Set(-loadSpeed);
+           if (temp_load_speed != 0.0)
+           {
+               frontCollector.Set(-temp_load_speed);
+           }
+           else
+           {
+               frontCollector.Set(-loadSpeed);
+           }
            backCollector.Set(-SPECIAL_BACK_ROLLER_LOADING_SPEED);
 #else
            //Determine if the robot is spinning too quickly to load

@@ -41,7 +41,7 @@ public:
     void SetLoadSpeed(float speed) {loadSpeed = speed;}
     COLLECTOR_POSITION_TYPE GetPosition (void){return position;}
     void Feed (bool feed_forward = false);
-    void Load (void);
+    void Load (float temp_load_speed = 0.0);
     void Collect (void);
     void Idle (void);
     bool Raise(void);

@@ -26,8 +26,8 @@
 #define RPM_AUTONOMOUS_LAST_SHOT 3780
 #define RPM_AUTONOMOUS_LAST_FOUR 3815
 #define RPM_AUTONOMOUS_CORNER_SHOTS 3600
-#define RPM_TELEOP_SHOTS 4000
-#define RPM_LAST_TELEOP_SHOT 3950
+#define RPM_TELEOP_SHOTS 3815
+#define RPM_LAST_TELEOP_SHOT 3765
 #define RPM_FIVE_POINTER     2625
 
 #define AUTON_STRAIGHTEN() myRobot.TankDrive((autonTurnAmount * -4.0), (autonTurnAmount * 4.0))
@@ -310,7 +310,7 @@ public:
 	{
 #ifdef PID_DEBUG_MODE
         driverStationLCD->PrintfLine((DriverStationLCD::Line) 0, "angle: %f", gyro.GetAngle());   
-	    if (driverStation->GetDigitalIn(1))
+	    if (driverStation->GetDigitalIn(1) == false)
 	    {
             static float angle = 0.0;
             static float p = 0.0;
@@ -956,7 +956,7 @@ public:
 		return false;
 	}
 	
-	bool AutonomousLoadFrisbees(bool use_switch = true, bool reset = false, float time = 3.0, float delay = 0.0)
+	bool AutonomousLoadFrisbees(bool use_switch = true, bool reset = false, float time = 3.0, float delay = 0.0,float load_speed = 0.0)
 	{
 		if (reset == true)
 		{
@@ -968,13 +968,13 @@ public:
 		{
 			if (collector.GetPosition() == Collector::UP)
 			{
-				collector.Load();
+				collector.Load(load_speed);
 			}
 			return true;
 		}
 		else if (autonLoading.Get() >= delay)
 		{
-			collector.Load();
+			collector.Load(load_speed);
 			return false;
 		}
 		else
