@@ -7,7 +7,7 @@
 class Collector
 {
 public:
-    typedef enum {UP, DOWN, TRAVELING_DOWN, TRAVELING_UP, STARTING_POSITION, LEAVING_STARTING_POSITION}COLLECTOR_POSITION_TYPE;
+    typedef enum {UP, DOWN, TRAVELING_DOWN, TRAVELING_UP, STARTING_POSITION, LEAVING_STARTING_POSITION, LEAVING_START_DROP}COLLECTOR_POSITION_TYPE;
 private: //Keep out Connor!!!
     COLLECTOR_POSITION_TYPE position;
     float loadSpeed;
@@ -47,7 +47,7 @@ public:
     bool Raise(void);
     bool Lower(void);
     void EnterStartingPosition (void);
-    void LeaveStartingPosition (void);
+    void LeaveStartingPosition (bool drop_to_the_floor = false);
 };
 
 #endif
