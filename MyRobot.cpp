@@ -22,12 +22,12 @@
 #define TIME_AUTONOMOUS_DISLODGE 0.3
 #define TIME_AUTONOMOUS_SPIN_UP 0.5
 #define POWER_AUTONOMOUS_SHOTS 0.56
-#define RPM_AUTONOMOUS_FIRST_SHOTS 3750
-#define RPM_AUTONOMOUS_LAST_SHOT 3780
-#define RPM_AUTONOMOUS_LAST_FOUR 3815
-#define RPM_AUTONOMOUS_CORNER_SHOTS 3600
-#define RPM_TELEOP_SHOTS 3815
-#define RPM_LAST_TELEOP_SHOT 3765
+#define RPM_AUTONOMOUS_FIRST_SHOTS 3825
+#define RPM_AUTONOMOUS_LAST_SHOT 3855
+#define RPM_AUTONOMOUS_LAST_FOUR 3890
+#define RPM_AUTONOMOUS_CORNER_SHOTS 3675
+#define RPM_TELEOP_SHOTS 3890
+#define RPM_LAST_TELEOP_SHOT 3840
 #define RPM_FIVE_POINTER     2625
 
 #define AUTON_STRAIGHTEN() myRobot.TankDrive((autonTurnAmount * -4.0), (autonTurnAmount * 4.0))
@@ -256,7 +256,7 @@ public:
 		frisbeeUnjamRetract.Set(true);
 		leftBrake.Set(true);
 		rightBrake.Set(true);
-		autonomousMode = AUTONOMOUS_MODE_SEVEN_FRISBEE_FORWARD;
+		autonomousMode = AUTONOMOUS_MODE_NINE_FRISBEE;
 //        autonomousMode = AUTONOMOUS_MODE_NINE_FRISBEE;
 		compressor.Start();
 		rotationPID.Disable();
@@ -1427,7 +1427,7 @@ public:
 			case 7:
 				//Load and Drive Backward without collecting
 				condition1 = AutonomousCollectBackFast(999.0,2.35,false,autonReset);
-				condition2 = AutonomousLoadFrisbees(true,false, 2.0,0.0,0.33);
+				condition2 = AutonomousLoadFrisbees(true,false, 2.0,0.0,0.35);
 				if (condition2)
 				{
 					collector.Lower();
@@ -1809,7 +1809,7 @@ public:
 				}
 				break;
 			case 3: 		//Drive forward and collect
-				if (AutonomousCollectForward(999.0,0.7,true,autonReset,false)== true)
+				if (AutonomousCollectForward(999.0,0.8,true,autonReset,false)== true)
 				{
 					autonReset = true;
 					autonStepCount++;
@@ -1821,7 +1821,7 @@ public:
 		
 				break;
 			case 4:	//Load frisbees
-				myRobot.Drive(0.50 + autonSpeedCorrect,-autonTurnAmount);
+				myRobot.Drive(0.35 + autonSpeedCorrect,-autonTurnAmount);
 				if (AutonomousLoadFrisbees(true,autonReset,1.5, 0.1) )
 				{
 					if (AutonomousLowerCollector())
@@ -1836,7 +1836,7 @@ public:
 				}
 				break;
 			case 5:	//Drive forward and lower collector
-				if (AutonomousCollectForward(999.0,0.4,true,autonReset,true,false) == true)
+				if (AutonomousCollectForward(999.0,0.45,true,autonReset,true,false) == true)
 				{
 					autonReset = true;
 					autonStepCount++;
@@ -1865,7 +1865,7 @@ public:
 				{
 					collector.Lower();
 				}
-				if (AutonomousCollectBackReallyFast(999.0,2.45,false,autonReset))
+				if (AutonomousCollectBackReallyFast(999.0,2.55,false,autonReset))
 				{
 					autonReset = true;
 					autonStepCount++;
@@ -1928,7 +1928,7 @@ public:
 				}
 				break;
 			case 12:
-				condition1 = AutonomousLoadFrisbees(false, autonReset, 1.4, 0.1);
+				condition1 = AutonomousLoadFrisbees(false, autonReset, 1.5, 0.1);
 				condition2 = AutonomousCollectForward(999.0,1.6,false,false,true,false);
 				if (condition1 && condition2)
 				{
@@ -1941,7 +1941,7 @@ public:
 				}
 				break;
 			case 13:
-				if (AutonomousShoot(2,false,autonReset))
+				if (AutonomousShoot(4,false,autonReset))
 				{
 					autonReset = true;
 					autonStepCount++;
