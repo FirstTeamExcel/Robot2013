@@ -182,6 +182,8 @@ class RobotDemo : public IterativeRobot
 	Timer autonLoading;
 	Timer autonShooting;
 	Timer autonDislodge;
+	Timer teleopTime;
+	bool teleopInput;
 	Encoder rightEncoder;
 	Encoder leftEncoder;
 	GyroControlledTurning rotationControl;
@@ -271,6 +273,9 @@ public:
 	    
 	    collector.LeaveStartingPosition();
 	    //lightSensorPower.Set(true);
+	    teleopTime.Reset();
+	    teleopTime.Start();
+	    teleopInput = false;
 	}
 	
 	void AutonomousInit (void)
@@ -376,8 +381,30 @@ public:
 		static Timer shot_timer;
 	//Test code
 	    float shot_rpm = 0.0;
-
-        
+	    //If we were doing 9 shot, we may be in firing position with 2 frisbees loaded.
+	    //Fire them while drivers step up to controls
+        if ((autonomousMode == AUTONOMOUS_MODE_NINE_FRISBEE) && (teleopTime.Get() < 1.0) && (teleopInput == false))
+        {
+            if ((leftStick.GetX() > 0.2) || 
+                    (rightStick.GetX() > 0.2) || 
+                    (leftStick.GetX() < -0.2) || 
+                    (rightStick.GetX() < -0.2) ||
+                    leftStick.GetTrigger() || rightStick.GetTrigger() ||
+                    (operatorStick.GetRawButton(2)==true )||(leftStick.GetRawButton(2)==true) ||
+                    (operatorStick.GetRawButton(4)==true )||(rightStick.GetRawButton(2)==true) ||
+                    (operatorStick.GetRawButton(3)==true) || (leftStick.GetRawButton(7) == true) ||
+                    (operatorStick.GetRawButton(5) == true) || (leftStick.GetRawButton(6) == true))
+            {
+                teleopInput = true;
+            }
+            else
+            {
+                AutonNineFrisbee();
+                return;
+            }
+        }
+	    
+	    
 	    if ((operatorStick.GetRawButton(1)==true)||(leftStick.GetRawButton(1)==true))
 		{
 			if (operatorStick.GetRawButton(10)==true)
