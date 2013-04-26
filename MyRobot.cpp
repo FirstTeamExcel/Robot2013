@@ -22,12 +22,12 @@
 #define TIME_AUTONOMOUS_DISLODGE 0.3
 #define TIME_AUTONOMOUS_SPIN_UP 0.5
 #define POWER_AUTONOMOUS_SHOTS 0.56
-#define RPM_AUTONOMOUS_FIRST_SHOTS 3825
-#define RPM_AUTONOMOUS_LAST_SHOT 3855
-#define RPM_AUTONOMOUS_LAST_FOUR 3890
+#define RPM_AUTONOMOUS_FIRST_SHOTS 3550
+#define RPM_AUTONOMOUS_LAST_SHOT RPM_AUTONOMOUS_LAST_FOUR
+#define RPM_AUTONOMOUS_LAST_FOUR 3700
 #define RPM_AUTONOMOUS_CORNER_SHOTS 3675
-#define RPM_TELEOP_SHOTS 3890
-#define RPM_LAST_TELEOP_SHOT 3840
+#define RPM_TELEOP_SHOTS 3650
+#define RPM_LAST_TELEOP_SHOT 3650
 #define RPM_FIVE_POINTER     2625
 
 #define AUTON_STRAIGHTEN() myRobot.TankDrive((autonTurnAmount * -4.0), (autonTurnAmount * 4.0))
@@ -256,7 +256,7 @@ public:
 		frisbeeUnjamRetract.Set(true);
 		leftBrake.Set(true);
 		rightBrake.Set(true);
-		autonomousMode = AUTONOMOUS_MODE_NINE_FRISBEE;
+		autonomousMode = AUTONOMOUS_MODE_SEVEN_FRISBEE_FORWARD;
 //        autonomousMode = AUTONOMOUS_MODE_NINE_FRISBEE;
 		compressor.Start();
 		rotationPID.Disable();
@@ -1809,7 +1809,7 @@ public:
 				}
 				break;
 			case 3: 		//Drive forward and collect
-				if (AutonomousCollectForward(999.0,0.8,true,autonReset,false)== true)
+				if (AutonomousCollectForward(999.0,0.9,true,autonReset,false)== true)
 				{
 					autonReset = true;
 					autonStepCount++;
@@ -1836,7 +1836,7 @@ public:
 				}
 				break;
 			case 5:	//Drive forward and lower collector
-				if (AutonomousCollectForward(999.0,0.45,true,autonReset,true,false) == true)
+				if (AutonomousCollectForward(999.0,0.4,true,autonReset,true,false) == true)
 				{
 					autonReset = true;
 					autonStepCount++;

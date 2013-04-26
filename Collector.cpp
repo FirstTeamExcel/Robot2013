@@ -4,6 +4,7 @@
 #define TIME_TO_TRAVEL_DOWN 0.65
 #define TIME_TO_LEAVE_STARTING_POSITION 0.5
 #define TIME_TO_DELAY_TILTER 0.085
+#define SPEED_TO_BACKROLL_TILTER 0.75
 #define TIME_TO_DROP_START 1.0
 #define SPECIAL_BACK_ROLLER_LOADING_SPEED 1.00
 
@@ -348,9 +349,9 @@ bool Collector::Raise(void)
 
 void Collector::TravelingUp(void)
 {
-    if (backCollector.Get() == 0.85)
+    if (backCollector.Get() == SPEED_TO_BACKROLL_TILTER)
     {
-        backCollector.Set(0.41);
+        backCollector.Set(0.21);
     }
     else
     {
@@ -361,7 +362,7 @@ void Collector::TravelingUp(void)
     {
         if (tilterExtend.Get() == false)
         {
-            backCollector.Set(.85);
+            backCollector.Set(SPEED_TO_BACKROLL_TILTER);
         }
         tilterExtend.Set(true);
         tilterRetract.Set(false);
