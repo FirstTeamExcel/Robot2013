@@ -24,7 +24,7 @@
 #define POWER_AUTONOMOUS_SHOTS 0.56
 #define RPM_AUTONOMOUS_FIRST_SHOTS 3550
 #define RPM_AUTONOMOUS_LAST_SHOT RPM_AUTONOMOUS_LAST_FOUR
-#define RPM_AUTONOMOUS_LAST_FOUR 3700
+#define RPM_AUTONOMOUS_LAST_FOUR 3725
 #define RPM_AUTONOMOUS_CORNER_SHOTS 3675
 #define RPM_TELEOP_SHOTS 3650
 #define RPM_LAST_TELEOP_SHOT 3650
@@ -88,13 +88,13 @@ typedef enum
 typedef enum
 {
     DIGITAL_0,
-    DIGITAL_COMPRESSOR_SWITCH,
     DIGITAL_WHEEL_RIGHT_FORWARD,
     DIGITAL_WHEEL_RIGHT_BACKWARD,
     DIGITAL_WHEEL_LEFT_FORWARD,
     DIGITAL_WHEEL_LEFT_BACKWARD,
     DIGITAL_LEFT_COLLECTOR_SWITCH,
     DIGITAL_SHOOTER_SENSOR,
+    DIGITAL_COMPRESSOR_SWITCH,
     DIGITAL_RIGHT_COLLECTOR_SWITCH,
     DIGITAL_HOPPER_SWITCH,
     DIGITAL_LEFT_BRAKE_OUT,
@@ -104,8 +104,8 @@ typedef enum
 typedef enum
 {
     RELAY_0,
-    RELAY_1,
     RELAY_COMPRESSOR
+    
 }RELAY_CHANNEL;
 typedef enum
 {
@@ -383,26 +383,26 @@ public:
 	    float shot_rpm = 0.0;
 	    //If we were doing 9 shot, we may be in firing position with 2 frisbees loaded.
 	    //Fire them while drivers step up to controls
-        if ((autonomousMode == AUTONOMOUS_MODE_NINE_FRISBEE) && (teleopTime.Get() < 1.0) && (teleopInput == false))
-        {
-            if ((leftStick.GetX() > 0.2) || 
-                    (rightStick.GetX() > 0.2) || 
-                    (leftStick.GetX() < -0.2) || 
-                    (rightStick.GetX() < -0.2) ||
-                    leftStick.GetTrigger() || rightStick.GetTrigger() ||
-                    (operatorStick.GetRawButton(2)==true )||(leftStick.GetRawButton(2)==true) ||
-                    (operatorStick.GetRawButton(4)==true )||(rightStick.GetRawButton(2)==true) ||
-                    (operatorStick.GetRawButton(3)==true) || (leftStick.GetRawButton(7) == true) ||
-                    (operatorStick.GetRawButton(5) == true) || (leftStick.GetRawButton(6) == true))
-            {
-                teleopInput = true;
-            }
-            else
-            {
-                AutonNineFrisbee();
-                return;
-            }
-        }
+//        if ((autonomousMode == AUTONOMOUS_MODE_NINE_FRISBEE) && (teleopTime.Get() < 1.0) && (teleopInput == false))
+//        {
+//            if ((leftStick.GetX() > 0.2) || 
+//                    (rightStick.GetX() > 0.2) || 
+//                    (leftStick.GetX() < -0.2) || 
+//                    (rightStick.GetX() < -0.2) ||
+//                    leftStick.GetTrigger() || rightStick.GetTrigger() ||
+//                    (operatorStick.GetRawButton(2)==true )||(leftStick.GetRawButton(2)==true) ||
+//                    (operatorStick.GetRawButton(4)==true )||(rightStick.GetRawButton(2)==true) ||
+//                    (operatorStick.GetRawButton(3)==true) || (leftStick.GetRawButton(7) == true) ||
+//                    (operatorStick.GetRawButton(5) == true) || (leftStick.GetRawButton(6) == true))
+//            {
+//                teleopInput = true;
+//            }
+//            else
+//            {
+//                AutonNineFrisbee();
+//                return;
+//            }
+//        }
 	    
 	    
 	    if ((operatorStick.GetRawButton(1)==true)||(leftStick.GetRawButton(1)==true))
@@ -1955,6 +1955,7 @@ public:
 				}
 				break;
 			case 12:
+			    //TODO if loading is delayed by forward momentum, then add a short myRobot.Drive(0.0,0.0) at a specific time for only a short period
 				condition1 = AutonomousLoadFrisbees(false, autonReset, 1.5, 0.1);
 				condition2 = AutonomousCollectForward(999.0,1.6,false,false,true,false);
 				if (condition1 && condition2)
