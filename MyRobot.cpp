@@ -22,9 +22,9 @@
 #define TIME_AUTONOMOUS_DISLODGE 0.3
 #define TIME_AUTONOMOUS_SPIN_UP 0.5
 #define POWER_AUTONOMOUS_SHOTS 0.56
-#define RPM_AUTONOMOUS_FIRST_SHOTS 3550
+#define RPM_AUTONOMOUS_FIRST_SHOTS 3750
 #define RPM_AUTONOMOUS_LAST_SHOT RPM_AUTONOMOUS_LAST_FOUR
-#define RPM_AUTONOMOUS_LAST_FOUR 3725
+#define RPM_AUTONOMOUS_LAST_FOUR 3825
 #define RPM_AUTONOMOUS_CORNER_SHOTS 3675
 #define RPM_TELEOP_SHOTS 3650
 #define RPM_LAST_TELEOP_SHOT 3650
@@ -52,13 +52,18 @@
 typedef enum
 {
     PWM_0,
-    PWM_RIGHT_DRIVE,
-    PWM_LEFT_DRIVE,
+    PWM_LEFT_DRIVE_FRONT,
+    PWM_LEFT_DRIVE_BACK,
     PWM_SHOOTER_WHEEL,
+    PWM_FAKE_1,
+    PWM_RIGHT_DRIVE_BACK,
     PWM_BACK_COLLECTOR,
     PWM_FRONT_COLLECTOR,
+    PWM_RIGHT_DRIVE_FRONT,
+    PWM_FAKE_2,
     PWM_6_SERVO_TEST
-    
+    //shooter = 3
+    //back collector = 6
 }PWM_CHANNEL;
 typedef enum
 {
@@ -148,6 +153,10 @@ AUTONOMOUS_MODE_SELECT autonomousMode;
 
 class RobotDemo : public IterativeRobot
 {
+    Talon leftFrontMotor;
+    Talon leftRearMotor;
+    Victor rightFrontMotor;
+    Talon rightRearMotor;
 	RobotDrive myRobot; // robot drive system
 	Joystick leftStick; // right joystick
 	Joystick rightStick;// left joystick
@@ -196,7 +205,11 @@ class RobotDemo : public IterativeRobot
 
 public:
 	RobotDemo(void): //initialized
-		myRobot(PWM_LEFT_DRIVE,PWM_RIGHT_DRIVE),	// these must be initialized in the same order
+	    leftFrontMotor(PWM_LEFT_DRIVE_FRONT),
+	    leftRearMotor(PWM_LEFT_DRIVE_BACK),
+	    rightFrontMotor(PWM_RIGHT_DRIVE_FRONT),
+	    rightRearMotor(PWM_RIGHT_DRIVE_BACK),
+		myRobot(leftFrontMotor,leftRearMotor,rightFrontMotor,rightRearMotor),	// these must be initialized in the same order
 		leftStick(1), // as they are declared above.
 		rightStick(2),
 		operatorStick(3),
@@ -370,6 +383,109 @@ public:
 //		    frisbeeShooter.DeliberatelySlowPowerBasedFrisbeeShootingTest();
 //		    return;
 //		}
+//        leftFrontMotor.Set(0.0);
+//        leftRearMotor.Set(0.0);
+//        rightFrontMotor.Set(0.0);
+//        rightRearMotor.Set(0.0);
+//        frisbeeShooter.SetPower(0.0);
+//        collectorFrontTemp.Set(0.0);
+//        collectorRearTemp.Set(0.0);
+//	    if (driverStation->GetDigitalIn(1) == true)
+//	    {
+//	        leftFrontMotor.Set(.6); 
+//	        
+//	        //leftFrontMotor.Set(0.0);
+//	        leftRearMotor.Set(0.0);
+//	        rightFrontMotor.Set(0.0);
+//	        rightRearMotor.Set(0.0);
+//	        frisbeeShooter.SetPower(0.0);
+//	        collectorFrontTemp.Set(0.0);
+//	        collectorRearTemp.Set(0.0);  
+//	    }
+//        else if (driverStation->GetDigitalIn(2) == true)
+//        {
+//            leftRearMotor.Set(.6);  
+//            
+//            leftFrontMotor.Set(0.0);
+//            //leftRearMotor.Set(0.0);
+//            rightFrontMotor.Set(0.0);
+//            rightRearMotor.Set(0.0);
+//            frisbeeShooter.SetPower(0.0);
+//            collectorFrontTemp.Set(0.0);
+//            collectorRearTemp.Set(0.0); 
+//        }
+//        else if (driverStation->GetDigitalIn(3) == true)
+//        {
+//            rightFrontMotor.Set(1.0);
+//            
+//            leftFrontMotor.Set(0.0);
+//            leftRearMotor.Set(0.0);
+//            //rightFrontMotor.Set(0.0);
+//            rightRearMotor.Set(0.0);
+//            frisbeeShooter.SetPower(0.0);
+//            collectorFrontTemp.Set(0.0);
+//            collectorRearTemp.Set(0.0);
+//        }
+//        else if (driverStation->GetDigitalIn(4) == true)
+//        {
+//            rightRearMotor.Set(.6);
+//            
+//            leftFrontMotor.Set(0.0);
+//            leftRearMotor.Set(0.0);
+//            rightFrontMotor.Set(0.0);
+//            //rightRearMotor.Set(0.0);
+//            frisbeeShooter.SetPower(0.0);
+//            collectorFrontTemp.Set(0.0);
+//            collectorRearTemp.Set(0.0);
+//        }
+//        else if (driverStation->GetDigitalIn(5) == true)
+//        {
+//            frisbeeShooter.SetPower(0.4);
+//            
+//            leftFrontMotor.Set(0.0);
+//            leftRearMotor.Set(0.0);
+//            rightFrontMotor.Set(0.0);
+//            rightRearMotor.Set(0.0);
+//            //frisbeeShooter.SetPower(0.0);
+//            collectorFrontTemp.Set(0.0);
+//            collectorRearTemp.Set(0.0);
+//        }
+//        else if (driverStation->GetDigitalIn(6) == true)
+//        {
+//            collectorFrontTemp.Set(.4);
+//            
+//            leftFrontMotor.Set(0.0);
+//            leftRearMotor.Set(0.0);
+//            rightFrontMotor.Set(0.0);
+//            rightRearMotor.Set(0.0);
+//            frisbeeShooter.SetPower(0.0);
+//            //collectorFrontTemp.Set(0.0);
+//            collectorRearTemp.Set(0.0);
+//        }
+//        else if (driverStation->GetDigitalIn(7) == true)
+//        {
+//            collectorRearTemp.Set(.4);
+//            
+//            leftFrontMotor.Set(0.0);
+//            leftRearMotor.Set(0.0);
+//            rightFrontMotor.Set(0.0);
+//            rightRearMotor.Set(0.0);
+//            frisbeeShooter.SetPower(0.0);
+//            collectorFrontTemp.Set(0.0);
+//            //collectorRearTemp.Set(0.0);
+//        }
+//        else
+//        {
+//            leftFrontMotor.Set(0.0);
+//            leftRearMotor.Set(0.0);
+//            rightFrontMotor.Set(0.0);
+//            rightRearMotor.Set(0.0);
+//            frisbeeShooter.SetPower(0.0);
+//            collectorFrontTemp.Set(0.0);
+//            collectorRearTemp.Set(0.0);
+//        }
+//	    return;
+//	    
 	    
 	    static bool stinger_toggled = false;
 		static bool climber_toggled = false;
@@ -586,7 +702,19 @@ public:
 //		else
 //		{
 		//frisbeeShooter.ControlSpeed();
-		myRobot.TankDrive(-leftStick.GetY(), -rightStick.GetY()); // drive with arcade style (use right stick)
+		
+		if(leftStick.GetRawButton(8))
+		{
+		    rightRearMotor.Set(1.0);   
+		}
+		else if (leftStick.GetRawButton(9))
+		{
+		    rightFrontMotor.Set(1.0);
+		}
+		else
+		{
+		    myRobot.TankDrive(-leftStick.GetY(), -rightStick.GetY());       // drive with arcade style (use right stick)
+		}
 //		}
 //		driverStationLCD->PrintfLine((DriverStationLCD::Line) 6, "angle %f", autonTurnAmount);			
 
@@ -893,7 +1021,7 @@ public:
 		else if (autonDrivingBack.Get() > 0.25)
 		{
 			//TODO use the encoder turn rate
-			myRobot.Drive(-(0.70 + autonSpeedCorrect), autonTurnAmount);//Set speed to 50% and collect
+			myRobot.Drive(-(0.55 + autonSpeedCorrect), autonTurnAmount);//Set speed to 50% and collect
 			if (collector_enabled) collector.Collect();
 			return false;//Return false
 		}
@@ -967,14 +1095,14 @@ public:
 		}
 		else if ((autonDrivingForward.Get() > 0.25)  || (ramped_start == false))
 		{
-			myRobot.Drive(1.0, -autonTurnAmount);//Set speed to 50% and collect
+			myRobot.Drive(0.8, -autonTurnAmount);//Set speed to 50% and collect
 //			myRobot.TankDrive(0.9 - autonTurnAmount, 0.9 + autonTurnAmount);
 			if (collector_enabled) collector.Collect();
 			return false;//Return false
 		}
 		else
 		{
-			myRobot.Drive(0.5 + autonSpeedCorrect + (autonDrivingForward.Get() * 2.0), -autonTurnAmount);//Set speed to 50% and collect
+			myRobot.Drive(0.4 + autonSpeedCorrect + (autonDrivingForward.Get() * 2.0), -autonTurnAmount);//Set speed to 50% and collect
 //			myRobot.TankDrive(0.5 - (autonDrivingForward.Get() * 2.0) - autonTurnAmount, 0.5 - (autonDrivingForward.Get() * 2.0) + autonTurnAmount);
 			if (collector_enabled) collector.Collect();
 			return false;//Return false
@@ -1428,7 +1556,7 @@ public:
 				}
 				break;
 			case 5:	//Drive forward and lower collector
-				if (AutonomousCollectForward(999.0,0.6,true,autonReset) == true)
+				if (AutonomousCollectForward(999.0,0.8,true,autonReset) == true)
 				{
 					autonReset = true;
 					autonStepCount++;
@@ -1453,7 +1581,7 @@ public:
 				break;
 			case 7:
 				//Load and Drive Backward without collecting
-				condition1 = AutonomousCollectBackFast(999.0,2.35,false,autonReset);
+				condition1 = AutonomousCollectBackFast(999.0,2.5,false,autonReset);
 				condition2 = AutonomousLoadFrisbees(true,false, 2.0,0.0,0.35);
 				if (condition2)
 				{

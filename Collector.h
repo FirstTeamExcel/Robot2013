@@ -13,8 +13,8 @@ private: //Keep out Connor!!!
     float loadSpeed;
     float feedSpeed;
     float collectSpeed;
-    Talon frontCollector;
-    Talon backCollector;
+    Victor frontCollector;
+    Victor backCollector;
     Solenoid lifterExtend;
     Solenoid lifterRetract;
     Solenoid tilterExtend;
