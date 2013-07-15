@@ -2,7 +2,7 @@
 
 #define POWER_DURING_SHOT 0.50
 #define TAKE_BACK_TIME 0.4
-#define SPEED_TOLERANCE 0.01
+#define SPEED_TOLERANCE 0.02
 
 Shooter::Shooter (int motor_channel, 
 		Counter *counter,

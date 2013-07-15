@@ -31,10 +31,10 @@ float SoftDrive::ContinueDriveStraight(float _gyroAngle)
 {
 
     float rotation = _gyroAngle - targetAngle;
-    float direction = (maxOutput >= 0.0) ? 1.0 : -1.0;
     
     if ((rotation > 90.0) || (rotation < -90.0) || (gyro_off_target_timer.Get() > 1.0))
     {
+        GetElapsedSeconds();//Grab the timer to keep updating it
         Drive(0.0,0.0);    
         return false; 
     }
@@ -54,45 +54,9 @@ float SoftDrive::ContinueDriveStraight(float _gyroAngle)
     autonSpeedCorrect = (autonTurnAmount) * AUTON_SPEED_CORRECT_FACTOR;
     if (autonSpeedCorrect < 0.0) autonSpeedCorrect = autonSpeedCorrect * -1.0;
 
-    float step;
-    if (direction > 0)
-    {
-        step = isStable ? forwardStableAccelleration : forwardTippyAccelleration;
-    }
-    else
-    {
-        step = isStable ? reverseStableAccelleration : reverseStableAccelleration;
-    }
+    currentOutput = GetOutput(maxOutput,currentOutput);
     
-    //if the output is less than it should be
-    if (currentOutput < maxOutput)
-    {
-        currentOutput += step;
-        //If we are slowing down, double step
-        if (direction < 0)
-        {
-            currentOutput += step;
-        }
-        if (currentOutput > maxOutput)
-        {
-            currentOutput = maxOutput;
-        }
-    }
-    //If the ouptut is more than it should be
-    else if (currentOutput > maxOutput)
-    {
-        currentOutput -= step;
-        //If we are slowing down, double step
-        if (direction > 0)
-        {
-            currentOutput -= step;
-        }
-        
-        if (currentOutput < maxOutput)
-        {
-            currentOutput = maxOutput;
-        }
-    }
+
     
     float remainingTime = timeToDrive - timeDriving.Get();
     if (remainingTime > 0.0)
@@ -116,18 +80,91 @@ void SoftDrive::ResetDriveStraight()
     timeToDrive = 0.0;
 }
 
-void SoftDrive::SoftTankDrive(float leftValue, float rightValue)
+void SoftDrive::SoftTankDrive(float leftThrottle, float rightThrottle)
 {
-    UINT32 _currentTime = FPGA_TIME_TO_SECONDS_APPROX(GetFPGATime());
-    //long _elapsedTime = - lastTime;
-    //lastTime = _currentTime;
     //both wheels in the same direction
-    if (((leftValue < 0.0) && (rightValue < 0.0)) ||
-        ((leftValue > 0.0) && (rightValue > 0.0)))   
-    {
-        
-    }
+    //both wheels in the same direction
+   leftOutput = GetOutput(leftThrottle,leftOutput);
+   rightOutput = GetOutput(rightThrottle,rightOutput);
+//   if (((leftValue < 0.0) && (rightValue < 0.0)) ||
+//       ((leftValue > 0.0) && (rightValue > 0.0)))   
+//   {
+//       TankDrive(leftOutput,rightOutput);
+//   }
+//   else //We are turning
+   {
+       TankDrive(leftOutput,rightOutput);
+   }
+
+//    if (leftDirection == rightDirection)   
+//    {
+//        leftOutput += leftStep;
+//        if (leftOutput )
+//        rightOutput += rightStep;
+//        
+//        
+//    }
 }
 
+float SoftDrive::GetStep(float direction)
+{
+    float step;
+    if (direction > 0)
+    {
+        step = isStable ? forwardStableAccelleration : forwardTippyAccelleration;
+    }
+    else
+    {
+        step = isStable ? reverseStableAccelleration : reverseStableAccelleration;
+    }
+    return step * GetElapsedSeconds();
+}
 
+float SoftDrive::GetOutput(float targetOutput, float currentOutput)
+{
+    
+    float direction = (targetOutput >= 0.0) ? 1.0 : -1.0;
+    float step = GetStep(direction);
+    
+    //if the output is less than it should be
+    if (currentOutput < targetOutput)
+    {
+        currentOutput += step;
+        //If we are slowing down, double step
+        if (direction < 0)
+        {
+            currentOutput += step;
+        }
+        if (currentOutput > targetOutput)
+        {
+            currentOutput = targetOutput;
+        }
+    }
+    //If the ouptut is more than it should be
+    else if (currentOutput > targetOutput)
+    {
+        currentOutput -= step;
+        //If we are slowing down, double step
+        if (direction > 0)
+        {
+            currentOutput -= step;
+        }
+        
+        if (currentOutput < targetOutput)
+        {
+            currentOutput = targetOutput;
+        }
+    }
+    return currentOutput;
+}
 
+float SoftDrive::GetElapsedSeconds()
+{
+    UINT32 _currentTime = FPGA_TIME_TO_SECONDS_APPROX(GetFPGATime());
+    float _elapsedTime = (float)(_currentTime - lastTime);
+    lastTime = _currentTime;
+    _elapsedTime = _elapsedTime / (1000.0 * 1000.0);
+    if (_elapsedTime > 1.0) _elapsedTime = 1.0;
+    return _elapsedTime; 
+    
+}

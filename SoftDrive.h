@@ -46,6 +46,10 @@ private:  //shooter attributes
     //Tank drive stuff
     float leftOutput;
     float rightOutput;
+    UINT32 lastTime;
     
+    float GetStep(float direction);
+    float GetOutput(float targetOutput, float currentOutput);
+    float GetElapsedSeconds();
 };
 #endif //SOFTDRIVE_H_
