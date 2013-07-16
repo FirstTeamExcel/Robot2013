@@ -192,6 +192,7 @@ class RobotDemo : public IterativeRobot
 	Timer autonShooting;
 	Timer autonDislodge;
 	Timer teleopTime;
+	Timer gyroOffTargetTimer;
 	bool teleopInput;
 	Encoder rightEncoder;
 	Encoder leftEncoder;
@@ -321,6 +322,8 @@ public:
         rotationPID.SetOutputRange(ROTATION_PID_MIN_OUTPUT,ROTATION_PID_MAX_OUTPUT);
         rotationPID.SetAbsoluteTolerance(ROTATION_PID_TOLERENCE);
         rotationPID.Disable();
+
+        gyroOffTargetTimer.Reset();
 	}
 
 	
@@ -378,122 +381,16 @@ public:
             return;
 	    }
 #endif //PID_DEBUG_MODE
-//		if (driverStation->GetDigitalIn(2) == false)
-//		{
-//		    frisbeeShooter.DeliberatelySlowPowerBasedFrisbeeShootingTest();
-//		    return;
-//		}
-//        leftFrontMotor.Set(0.0);
-//        leftRearMotor.Set(0.0);
-//        rightFrontMotor.Set(0.0);
-//        rightRearMotor.Set(0.0);
-//        frisbeeShooter.SetPower(0.0);
-//        collectorFrontTemp.Set(0.0);
-//        collectorRearTemp.Set(0.0);
-//	    if (driverStation->GetDigitalIn(1) == true)
-//	    {
-//	        leftFrontMotor.Set(.6); 
-//	        
-//	        //leftFrontMotor.Set(0.0);
-//	        leftRearMotor.Set(0.0);
-//	        rightFrontMotor.Set(0.0);
-//	        rightRearMotor.Set(0.0);
-//	        frisbeeShooter.SetPower(0.0);
-//	        collectorFrontTemp.Set(0.0);
-//	        collectorRearTemp.Set(0.0);  
-//	    }
-//        else if (driverStation->GetDigitalIn(2) == true)
-//        {
-//            leftRearMotor.Set(.6);  
-//            
-//            leftFrontMotor.Set(0.0);
-//            //leftRearMotor.Set(0.0);
-//            rightFrontMotor.Set(0.0);
-//            rightRearMotor.Set(0.0);
-//            frisbeeShooter.SetPower(0.0);
-//            collectorFrontTemp.Set(0.0);
-//            collectorRearTemp.Set(0.0); 
-//        }
-//        else if (driverStation->GetDigitalIn(3) == true)
-//        {
-//            rightFrontMotor.Set(1.0);
-//            
-//            leftFrontMotor.Set(0.0);
-//            leftRearMotor.Set(0.0);
-//            //rightFrontMotor.Set(0.0);
-//            rightRearMotor.Set(0.0);
-//            frisbeeShooter.SetPower(0.0);
-//            collectorFrontTemp.Set(0.0);
-//            collectorRearTemp.Set(0.0);
-//        }
-//        else if (driverStation->GetDigitalIn(4) == true)
-//        {
-//            rightRearMotor.Set(.6);
-//            
-//            leftFrontMotor.Set(0.0);
-//            leftRearMotor.Set(0.0);
-//            rightFrontMotor.Set(0.0);
-//            //rightRearMotor.Set(0.0);
-//            frisbeeShooter.SetPower(0.0);
-//            collectorFrontTemp.Set(0.0);
-//            collectorRearTemp.Set(0.0);
-//        }
-//        else if (driverStation->GetDigitalIn(5) == true)
-//        {
-//            frisbeeShooter.SetPower(0.4);
-//            
-//            leftFrontMotor.Set(0.0);
-//            leftRearMotor.Set(0.0);
-//            rightFrontMotor.Set(0.0);
-//            rightRearMotor.Set(0.0);
-//            //frisbeeShooter.SetPower(0.0);
-//            collectorFrontTemp.Set(0.0);
-//            collectorRearTemp.Set(0.0);
-//        }
-//        else if (driverStation->GetDigitalIn(6) == true)
-//        {
-//            collectorFrontTemp.Set(.4);
-//            
-//            leftFrontMotor.Set(0.0);
-//            leftRearMotor.Set(0.0);
-//            rightFrontMotor.Set(0.0);
-//            rightRearMotor.Set(0.0);
-//            frisbeeShooter.SetPower(0.0);
-//            //collectorFrontTemp.Set(0.0);
-//            collectorRearTemp.Set(0.0);
-//        }
-//        else if (driverStation->GetDigitalIn(7) == true)
-//        {
-//            collectorRearTemp.Set(.4);
-//            
-//            leftFrontMotor.Set(0.0);
-//            leftRearMotor.Set(0.0);
-//            rightFrontMotor.Set(0.0);
-//            rightRearMotor.Set(0.0);
-//            frisbeeShooter.SetPower(0.0);
-//            collectorFrontTemp.Set(0.0);
-//            //collectorRearTemp.Set(0.0);
-//        }
-//        else
-//        {
-//            leftFrontMotor.Set(0.0);
-//            leftRearMotor.Set(0.0);
-//            rightFrontMotor.Set(0.0);
-//            rightRearMotor.Set(0.0);
-//            frisbeeShooter.SetPower(0.0);
-//            collectorFrontTemp.Set(0.0);
-//            collectorRearTemp.Set(0.0);
-//        }
-//	    return;
-//	    
+	    driverStationLCD->PrintfLine((DriverStationLCD::Line) 3, "Turn: %f", leftStick.GetX());
+	            driverStationLCD->UpdateLCD();
 	    if (leftStick.GetRawButton(11))
         {
-            myRobot.Drive(-0.4,0.0);
+            myRobot.Drive(-0.4,0.01);
             return;
         }
         else if (leftStick.GetRawButton(10))
         {
-            myRobot.Drive(0.4,0.0);
+            myRobot.Drive(0.4,0.1);
             return;
         }
         else if (rightStick.GetRawButton(11))
@@ -856,10 +753,9 @@ public:
 		
 	void AutonomousPeriodic (void)
 	{
-	    static Timer gyro_off_target_timer;
 	    float gyro_angle = gyro.GetAngle();
         driverStationLCD->PrintfLine((DriverStationLCD::Line) 4, "angle:%f", gyro_angle);
-	    if ((gyro_angle > 90.0) || (gyro_angle < -90.0) || (gyro_off_target_timer.Get() > 1.0))
+	    if ((gyro_angle > 90.0) || (gyro_angle < -90.0) || (gyroOffTargetTimer.Get() > 1.0))
 	    {
 	        myRobot.Drive(0.0,0.0);
 	        driverStationLCD->UpdateLCD();
@@ -868,11 +764,11 @@ public:
 	    }
 	    else if ((gyro_angle > 30.0) || (gyro_angle < -30.0))
 	    {
-	        gyro_off_target_timer.Start();
+	        gyroOffTargetTimer.Start();
 	    }
 	    else
 	    {
-	        gyro_off_target_timer.Reset();
+	        gyroOffTargetTimer.Reset();
 	    }
 	    
 		timeInAutonomous.Start();
@@ -915,13 +811,13 @@ public:
 		case AUTONOMOUS_MODE_FEED_FRISBEE:
 			break;
 		}
+		
+		
+		
+		
+		
 		//myRobot.Drive(forwardSpeed, curve); curve less than 0 turns left, curve greater than zero turns right
-		
-		
-		
-		
-		
-		autonTurnAmount = gyro_angle / 100.0f;
+		autonTurnAmount = gyro_angle / 50.0f;
 		if (autonTurnAmount > 0.2) autonTurnAmount = 0.2;
 		if (autonTurnAmount < -0.2) autonTurnAmount = -0.2;
 		
@@ -1602,7 +1498,7 @@ public:
 		
 				break;
 			case 4:	//Load frisbees
-				myRobot.Drive(0.20 + autonSpeedCorrect,-autonTurnAmount);
+				myRobot.Drive(0.20 + autonSpeedCorrect,(-autonTurnAmount) + 0.1);
 				if (AutonomousLoadFrisbees(true,autonReset,2.0) )
 				{
 					if (AutonomousLowerCollector())
@@ -2025,7 +1921,7 @@ public:
 				}
 				break;
 			case 3: 		//Drive forward and collect
-				if (AutonomousCollectForwardFast(999.0,0.8,true,autonReset,false)== true)
+				if (AutonomousCollectForward(999.0,1.1,true,autonReset,false)== true)
 				{
 					autonReset = true;
 					autonStepCount++;
@@ -2037,8 +1933,8 @@ public:
 		
 				break;
 			case 4:	//Load frisbees
-				myRobot.Drive(0.30 + autonSpeedCorrect,-autonTurnAmount);
-				if (AutonomousLoadFrisbees(true,autonReset,1.5, 0.1) )
+				myRobot.Drive(0.30 + autonSpeedCorrect,((-autonTurnAmount) + 0.10));
+				if (AutonomousLoadFrisbees(true,autonReset,1.45, 0.1) )
 				{
 					if (AutonomousLowerCollector())
 					{
@@ -2052,7 +1948,7 @@ public:
 				}
 				break;
 			case 5:	//Drive forward and lower collector
-				if (AutonomousCollectForwardFast(999.0,0.35,true,autonReset,true,false) == true)
+				if (AutonomousCollectForward(999.0,0.45,true,autonReset,true,false) == true)
 				{
 					autonReset = true;
 					autonStepCount++;
@@ -2081,7 +1977,7 @@ public:
 				{
 					collector.Lower();
 				}
-				if (AutonomousCollectBackReallyFast(999.0,2.3,false,autonReset))
+				if (AutonomousCollectBackReallyFast(999.0,2.2,false,autonReset))
 				{
 					autonReset = true;
 					autonStepCount++;
