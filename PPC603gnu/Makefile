@@ -194,6 +194,14 @@ Robot2013_partialImage/$(MODE_DIR)/Objects/Robot2013/jankyTask.o : $(PRJ_ROOT_DI
 	$(TRACE_FLAG)if [ ! -d "`dirname "$@"`" ]; then mkdir -p "`dirname "$@"`"; fi;echo "building $@"; $(TOOL_PATH)ccppc $(DEBUGFLAGS_C++-Compiler) $(CC_ARCH_SPEC) -ansi -Wall  -MD -MP -mlongcall $(ADDED_C++FLAGS) $(IDE_INCLUDES) $(ADDED_INCLUDES) -DCPU=$(CPU) -DTOOL_FAMILY=$(TOOL_FAMILY) -DTOOL=$(TOOL) -D_WRS_KERNEL   $(DEFINES) -o "$@" -c "$<"
 
 
+Robot2013_partialImage/$(MODE_DIR)/Objects/Robot2013/temp1.o : $(PRJ_ROOT_DIR)/temp1.c $(FORCE_FILE_BUILD)
+	$(TRACE_FLAG)if [ ! -d "`dirname "$@"`" ]; then mkdir -p "`dirname "$@"`"; fi;echo "building $@"; $(TOOL_PATH)ccppc $(DEBUGFLAGS_C-Compiler) $(CC_ARCH_SPEC) -ansi  -Wall  -MD -MP -mlongcall $(ADDED_CFLAGS) $(IDE_INCLUDES) $(ADDED_INCLUDES) -DCPU=$(CPU) -DTOOL_FAMILY=$(TOOL_FAMILY) -DTOOL=$(TOOL) -D_WRS_KERNEL   $(DEFINES) -o "$@" -c "$<"
+
+
+Robot2013_partialImage/$(MODE_DIR)/Objects/Robot2013/temp2.o : $(PRJ_ROOT_DIR)/temp2.c $(FORCE_FILE_BUILD)
+	$(TRACE_FLAG)if [ ! -d "`dirname "$@"`" ]; then mkdir -p "`dirname "$@"`"; fi;echo "building $@"; $(TOOL_PATH)ccppc $(DEBUGFLAGS_C-Compiler) $(CC_ARCH_SPEC) -ansi  -Wall  -MD -MP -mlongcall $(ADDED_CFLAGS) $(IDE_INCLUDES) $(ADDED_INCLUDES) -DCPU=$(CPU) -DTOOL_FAMILY=$(TOOL_FAMILY) -DTOOL=$(TOOL) -D_WRS_KERNEL   $(DEFINES) -o "$@" -c "$<"
+
+
 OBJECTS_Robot2013_partialImage = Robot2013_partialImage/$(MODE_DIR)/Objects/Robot2013/Collector.o \
 	 Robot2013_partialImage/$(MODE_DIR)/Objects/Robot2013/ImageProcessing.o \
 	 Robot2013_partialImage/$(MODE_DIR)/Objects/Robot2013/MyRobot.o \
@@ -201,7 +209,9 @@ OBJECTS_Robot2013_partialImage = Robot2013_partialImage/$(MODE_DIR)/Objects/Robo
 	 Robot2013_partialImage/$(MODE_DIR)/Objects/Robot2013/SoftDrive.o \
 	 Robot2013_partialImage/$(MODE_DIR)/Objects/Robot2013/TargetCamera.o \
 	 Robot2013_partialImage/$(MODE_DIR)/Objects/Robot2013/customPIDs.o \
-	 Robot2013_partialImage/$(MODE_DIR)/Objects/Robot2013/jankyTask.o
+	 Robot2013_partialImage/$(MODE_DIR)/Objects/Robot2013/jankyTask.o \
+	 Robot2013_partialImage/$(MODE_DIR)/Objects/Robot2013/temp1.o \
+	 Robot2013_partialImage/$(MODE_DIR)/Objects/Robot2013/temp2.o
 
 Robot2013_partialImage/$(MODE_DIR)/Robot2013_partialImage.o : $(OBJECTS_Robot2013_partialImage)
 	$(TRACE_FLAG)if [ ! -d "`dirname "$@"`" ]; then mkdir -p "`dirname "$@"`"; fi;echo "building $@"; $(TOOL_PATH)ccppc -r -nostdlib -Wl,-X  -o "$@" $(OBJECTS_Robot2013_partialImage) $(LIBPATH) $(LIBS) $(ADDED_LIBPATH) $(ADDED_LIBS)  && if [ "$(EXPAND_DBG)" = "1" ]; then plink "$@";fi
@@ -217,7 +227,8 @@ force :
 
 DEP_FILES := Robot2013_partialImage/$(MODE_DIR)/Objects/Robot2013/Collector.d Robot2013_partialImage/$(MODE_DIR)/Objects/Robot2013/ImageProcessing.d Robot2013_partialImage/$(MODE_DIR)/Objects/Robot2013/MyRobot.d \
 	 Robot2013_partialImage/$(MODE_DIR)/Objects/Robot2013/Shooter.d Robot2013_partialImage/$(MODE_DIR)/Objects/Robot2013/SoftDrive.d Robot2013_partialImage/$(MODE_DIR)/Objects/Robot2013/TargetCamera.d \
-	 Robot2013_partialImage/$(MODE_DIR)/Objects/Robot2013/customPIDs.d Robot2013_partialImage/$(MODE_DIR)/Objects/Robot2013/jankyTask.d
+	 Robot2013_partialImage/$(MODE_DIR)/Objects/Robot2013/customPIDs.d Robot2013_partialImage/$(MODE_DIR)/Objects/Robot2013/jankyTask.d Robot2013_partialImage/$(MODE_DIR)/Objects/Robot2013/temp1.d \
+	 Robot2013_partialImage/$(MODE_DIR)/Objects/Robot2013/temp2.d
 -include $(DEP_FILES)
 
 

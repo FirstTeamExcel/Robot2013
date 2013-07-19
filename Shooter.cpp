@@ -1,8 +1,8 @@
 #include "Shooter.h"
 
-#define POWER_DURING_SHOT 0.50
+#define POWER_DURING_SHOT 0.70
 #define TAKE_BACK_TIME 0.4
-#define SPEED_TOLERANCE 0.02
+#define SPEED_TOLERANCE 0.01
 
 Shooter::Shooter (int motor_channel, 
 		Counter *counter,
@@ -194,7 +194,7 @@ bool Shooter::ShootFrisbee (bool fire, bool really_fast)
 	if (speedControl == true)
 	{
 		travel_time = 0.3;
-		if (really_fast == true)travel_time = 0.2;
+		if (really_fast == true)travel_time = 0.3;
 	}
 	
 	switch (state)
