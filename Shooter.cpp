@@ -193,7 +193,7 @@ bool Shooter::ShootFrisbee (bool fire, bool really_fast)
 	static Timer take_back_timer;
 	if (speedControl == true)
 	{
-		travel_time = 0.3;
+		travel_time = 0.35;
 		if (really_fast == true)travel_time = 0.3;
 	}
 	

@@ -22,12 +22,13 @@
 #define TIME_AUTONOMOUS_DISLODGE 0.3
 #define TIME_AUTONOMOUS_SPIN_UP 0.5
 #define POWER_AUTONOMOUS_SHOTS 0.56
-#define RPM_AUTONOMOUS_FIRST_SHOTS 3800
+#define RPM_AUTONOMOUS_FIRST_SHOTS 4075
 #define RPM_AUTONOMOUS_LAST_SHOT RPM_AUTONOMOUS_LAST_FOUR
-#define RPM_AUTONOMOUS_LAST_FOUR 3925
-#define RPM_AUTONOMOUS_CORNER_SHOTS 3675
-#define RPM_TELEOP_SHOTS 3650
-#define RPM_LAST_TELEOP_SHOT 3650
+#define RPM_AUTONOMOUS_LAST_FOUR 4075
+#define RPM_AUTONOMOUS_CORNER_SHOTS 4000
+//#define RPM_AUTONOMOUS_CORNER_SHOTS 4025 //left side
+#define RPM_TELEOP_SHOTS 4000
+#define RPM_LAST_TELEOP_SHOT 4000
 #define RPM_FIVE_POINTER     2625
 
 #define AUTON_STRAIGHTEN() myRobot.TankDrive((autonTurnAmount * -4.0), (autonTurnAmount * 4.0))
@@ -333,9 +334,9 @@ public:
 	void TeleopPeriodic (void)
 	{
 
-        float gyro_angle = gyro.GetAngle();
-        driverStationLCD->PrintfLine((DriverStationLCD::Line) 4, "angle:%f", gyro_angle);
-        driverStationLCD->UpdateLCD();
+//        float gyro_angle = gyro.GetAngle();
+//        driverStationLCD->PrintfLine((DriverStationLCD::Line) 4, "angle:%f", gyro_angle);
+//        driverStationLCD->UpdateLCD();
 #ifdef PID_DEBUG_MODE
         driverStationLCD->PrintfLine((DriverStationLCD::Line) 0, "angle: %f", gyro.GetAngle());   
 	    if (driverStation->GetDigitalIn(1) == false)
@@ -390,27 +391,27 @@ public:
 #endif //PID_DEBUG_MODE
 //	    driverStationLCD->PrintfLine((DriverStationLCD::Line) 3, "Turn: %f", leftStick.GetX());
 //	            driverStationLCD->UpdateLCD();
-	    if (leftStick.GetRawButton(11))
-        {
-            myRobot.Drive(-0.4,0.0);
-            return;
-        }
-        else if (leftStick.GetRawButton(10))
-        {
-            myRobot.Drive(0.4,0.0);
-            return;
-        }
-        else if (rightStick.GetRawButton(11))
-        {
-            myRobot.Drive(-1.0,0.0);
-            return;
-        }
-        else if (rightStick.GetRawButton(10))
-        {
-            myRobot.Drive(1.0,0.0);
-            return;
-        }
-	    
+//	    if (leftStick.GetRawButton(11))
+//        {
+//            myRobot.Drive(-0.4,0.0);
+//            return;
+//        }
+//        else if (leftStick.GetRawButton(10))
+//        {
+//            myRobot.Drive(0.4,0.0);
+//            return;
+//        }
+//        else if (rightStick.GetRawButton(11))
+//        {
+//            myRobot.Drive(-1.0,0.0);
+//            return;
+//        }
+//        else if (rightStick.GetRawButton(10))
+//        {
+//            myRobot.Drive(1.0,0.0);
+//            return;
+//        }
+//	    
 	    static bool stinger_toggled = false;
 		static bool climber_toggled = false;
 	    compressor.Start();
@@ -423,29 +424,29 @@ public:
 	    float shot_rpm = 0.0;
 	    //If we were doing 9 shot, we may be in firing position with 2 frisbees loaded.
 	    //Fire them while drivers step up to controls
-        if (continueAuton && 
-                (autonomousMode == AUTONOMOUS_MODE_NINE_FRISBEE) && 
-                (teleopTime.Get() < 1.0) && 
-                (teleopInput == false))
-        {
-            if ((leftStick.GetX() > 0.2) || 
-                    (rightStick.GetX() > 0.2) || 
-                    (leftStick.GetX() < -0.2) || 
-                    (rightStick.GetX() < -0.2) ||
-                    leftStick.GetTrigger() || rightStick.GetTrigger() ||
-                    (operatorStick.GetRawButton(2)==true )||(leftStick.GetRawButton(2)==true) ||
-                    (operatorStick.GetRawButton(4)==true )||(rightStick.GetRawButton(2)==true) ||
-                    (operatorStick.GetRawButton(3)==true) || (leftStick.GetRawButton(7) == true) ||
-                    (operatorStick.GetRawButton(5) == true) || (leftStick.GetRawButton(6) == true))
-            {
-                teleopInput = true;
-            }
-            else
-            {
-                AutonNineFrisbee();
-                return;
-            }
-        }
+//        if (continueAuton && 
+//                (autonomousMode == AUTONOMOUS_MODE_NINE_FRISBEE) && 
+//                (teleopTime.Get() < 1.0) && 
+//                (teleopInput == false))
+//        {
+//            if ((leftStick.GetX() > 0.2) || 
+//                    (rightStick.GetX() > 0.2) || 
+//                    (leftStick.GetX() < -0.2) || 
+//                    (rightStick.GetX() < -0.2) ||
+//                    leftStick.GetTrigger() || rightStick.GetTrigger() ||
+//                    (operatorStick.GetRawButton(2)==true )||(leftStick.GetRawButton(2)==true) ||
+//                    (operatorStick.GetRawButton(4)==true )||(rightStick.GetRawButton(2)==true) ||
+//                    (operatorStick.GetRawButton(3)==true) || (leftStick.GetRawButton(7) == true) ||
+//                    (operatorStick.GetRawButton(5) == true) || (leftStick.GetRawButton(6) == true))
+//            {
+//                teleopInput = true;
+//            }
+//            else
+//            {
+//                AutonNineFrisbee();
+//                return;
+//            }
+//        }
 	    
 	    
 	    if ((operatorStick.GetRawButton(1)==true)||(leftStick.GetRawButton(1)==true))
@@ -548,26 +549,18 @@ public:
 	    	climber_toggled = false;
 	    }
 	    
-		if (leftStick.GetRawButton(3)  && rightStick.GetRawButton(3) && 
-			(stinger_toggled == false) && (robotLifterExtend.Get() == false))
-		{
-			robotLifterExtend.Set(true);
-			robotLifterRetract.Set(false);
-			stinger_toggled = true;
-		}
-		else if (leftStick.GetRawButton(3)  && rightStick.GetRawButton(3) && 
-				(stinger_toggled == false))
-		{
-			robotLifterRetract.Set(true);
-			robotLifterExtend.Set(false);
-			stinger_toggled = true;
-		}
-		else if (!(leftStick.GetRawButton(3)  || rightStick.GetRawButton(3)))
-		{
-			stinger_toggled = false;
-		}
-		
-		if (operatorStick.GetRawButton(6))
+	    if (leftStick.GetRawButton(3))
+	    {
+	        robotClimberExtend.Set(false);
+	        robotClimberRetract.Set(true);
+	    }
+	    else if (rightStick.GetRawButton(3))
+	    {
+	        robotClimberExtend.Set(true);
+	        robotClimberRetract.Set(false);
+	    }
+
+	    if (operatorStick.GetRawButton(6))
 		{
 			frisbeeUnjamRetract.Set(false);
 			frisbeeUnjamExtend.Set(true);
@@ -1109,7 +1102,7 @@ public:
 		else
 		{
 			collector.LeaveStartingPosition();
-			myRobot.Drive(0.30,0.0);
+			myRobot.Drive(0.40,0.0);
 		}
 		return false;
 	}
@@ -1719,7 +1712,7 @@ public:
         
                 break;
             case 4: //Load frisbees
-                myRobot.Drive(0.20 + autonSpeedCorrect,(-autonTurnAmount));
+                myRobot.Drive(0.30 + autonSpeedCorrect,(-autonTurnAmount));
                 if (AutonomousLoadFrisbees(true,autonReset,2.0) )
                 {
                     if (AutonomousLowerCollector())
@@ -1734,7 +1727,7 @@ public:
                 }
                 break;
             case 5: //Drive forward and lower collector
-                if (AutonomousCollectForward(999.0,0.90,true,autonReset) == true)
+                if (AutonomousCollectForward(999.0,1.40,true,autonReset,false) == true)
                 {
                     autonReset = true;
                     autonStepCount++;
@@ -1745,7 +1738,7 @@ public:
                 }
                 break;
             case 6: //Stop motor and begin loading
-                myRobot.Drive(0.0,0.0);
+                myRobot.Drive(0.3,0.0);
                 AutonomousLoadFrisbees(true,autonReset);
                 if (autonLoading.Get() > 0.25)
                 {
@@ -1759,7 +1752,7 @@ public:
                 break;
             case 7:
                 //Load and Drive Backward without collecting
-                condition1 = AutonomousCollectBackFast(999.0,2.65,false,autonReset);
+                condition1 = AutonomousCollectBackFast(999.0,3.15,false,autonReset);
                 condition2 = AutonomousLoadFrisbees(true,false, 2.0,0.0,0.35);
                 if (condition2)
                 {
