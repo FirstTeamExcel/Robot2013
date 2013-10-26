@@ -8,17 +8,17 @@
 
 
 //7shot backup parameters, change time by .1 each try, change speed by .05 each try if the robot is still rolling when it shoots
-#define SEVEN_SHOT_BACKUP_TIME 2.95
-#define SEVEN_SHOT_BACKUP_SPEED 0.70
+#define SEVEN_SHOT_BACKUP_TIME 3.00
+#define SEVEN_SHOT_BACKUP_SPEED 0.71
 
 
 
 #define TIME_AUTONOMOUS_DISLODGE 0.3
 #define TIME_AUTONOMOUS_SPIN_UP 0.5
 #define POWER_AUTONOMOUS_SHOTS 0.56
-#define RPM_AUTONOMOUS_FIRST_SHOTS 4075
+#define RPM_AUTONOMOUS_FIRST_SHOTS 4150
 #define RPM_AUTONOMOUS_LAST_SHOT RPM_AUTONOMOUS_LAST_FOUR
-#define RPM_AUTONOMOUS_LAST_FOUR 4075
+#define RPM_AUTONOMOUS_LAST_FOUR 4125
 #define RPM_AUTONOMOUS_CORNER_SHOTS 4000
 //#define RPM_AUTONOMOUS_CORNER_SHOTS 4025 //left side
 #define RPM_TELEOP_SHOTS 4000
@@ -471,19 +471,8 @@ public:
 			start_position_timer.Reset();
 			start_position_timer.Stop();
 		}
-		
-		if(leftStick.GetRawButton(8))
-		{
-		    rightRearMotor.Set(1.0);   
-		}
-		else if (leftStick.GetRawButton(9))
-		{
-		    rightFrontMotor.Set(1.0);
-		}
-		else
-		{
+	
 		    myRobot.TankDrive(-leftStick.GetY(), -rightStick.GetY());       // drive with arcade style (use right stick)
-		}
 
 		driverStationLCD->UpdateLCD();
 		
@@ -1171,7 +1160,7 @@ public:
 
                 frisbeeShooter.SetRpm(RPM_AUTONOMOUS_LAST_FOUR);
                 //frisbeeShooter.SetRpm(0);
-                if (AutonomousCollectForward(999.0,1.1,true,autonReset)== true)
+                if (AutonomousCollectForward(999.0,1.15,true,autonReset)== true)
                 {
                     autonReset = true;
                     autonStepCount++;

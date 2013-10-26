@@ -29,7 +29,7 @@ Collector::Collector (int front_collector_channel,
             accelerometer(1)
 {
     position = DOWN;
-    loadSpeed=0.38;
+    loadSpeed=0.28;
     feedSpeed=1.0;
     collectSpeed=0.6;
     timeTraveling.Stop();
